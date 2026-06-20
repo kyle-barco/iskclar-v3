@@ -578,12 +578,12 @@
             if (!val) return 'Date of birth is required.';
             const d = new Date(val + 'T00:00:00');
             const now = new Date();
-            const minAge = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate());
-            const maxAge = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+            const maxAge = new Date(now.getFullYear() - 40, now.getMonth(), now.getDate());
+            const minAge = new Date(now.getFullYear() - 15, now.getMonth(), now.getDate());
             if (isNaN(d.getTime())) return 'Invalid date.';
             if (d > now) return 'Date of birth cannot be in the future.';
-            if (d < minAge) return 'Please enter a valid date of birth.';
-            if (d > maxAge) return 'You must be at least 10 years old.';
+            if (d < maxAge) return 'You must be 40 years old or younger.';
+            if (d > minAge) return 'You must be at least 15 years old.';
             return '';
           }
         },
