@@ -1,133 +1,867 @@
-<%- include('../partials/head', { title: 'Register | Iskolarly' }) %>
+<%- include('../partials/head', { title: 'Register | Iskolarly', fonts: true }) %>
 
-<nav class="navbar">
-  <div class="navbar-inner">
-    <a href="/" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly</div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="/">&larr; Back to Home</a></li>
-      <li><a href="/auth/admin">Admin Portal</a></li>
-    </ul>
-  </div>
-</nav>
+  <style>
+    .register-wrap {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 24px 64px;
+      background: var(--slate);
+    }
+    .register-container {
+      width: 100%;
+      max-width: 600px;
+    }
+    .register-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .register-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--navy);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .register-icon svg {
+      color: var(--white);
+      width: 28px;
+      height: 28px;
+    }
+    .register-header h1 {
+      font-size: 1.7rem;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
 
-<div style="min-height:calc(100vh - 64px);display:grid;grid-template-columns:1fr 1fr;">
-  <div style="background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:64px 56px;position:relative;overflow:hidden;">
-    <div style="position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:rgba(201,168,76,.1);border-radius:50%;"></div>
-    <div style="position:absolute;bottom:-60px;left:20%;width:180px;height:180px;background:rgba(201,168,76,.06);border-radius:50%;"></div>
-    <h2 style="color:var(--white);font-size:2rem;margin-bottom:14px;position:relative;z-index:1;">Start Your Journey.</h2>
-    <p style="color:rgba(255,255,255,.65);font-size:.95rem;line-height:1.7;max-width:360px;margin-bottom:40px;position:relative;z-index:1;">Create your account and take the first step toward securing your scholarship.</p>
-  </div>
+    /* Step indicator */
+    .steps {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 160px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: calc(50% + 20px);
+      width: calc(100% - 40px);
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .step.done:not(:last-child)::after {
+      background: var(--success);
+    }
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+      transition: all var(--transition);
+    }
+    .step-circle.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: var(--white);
+    }
+    .step-circle.done {
+      background: var(--success);
+      border-color: var(--success);
+      color: var(--white);
+    }
+    .step-label {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .step.active .step-label {
+      color: var(--navy);
+    }
+    .step.done .step-label {
+      color: var(--success);
+    }
 
-  <div style="display:flex;align-items:center;justify-content:center;padding:48px 40px;background:var(--slate);">
-    <div style="width:100%;max-width:480px;max-height:calc(100vh - 100px);overflow-y:auto;">
-      <h1 style="font-size:1.7rem;margin-bottom:6px;">Create Account</h1>
-      <p class="text-muted mb-24">Fill in your details to get started.</p>
+    /* Steps content */
+    .step-content {
+      display: none;
+    }
+    .step-content.active {
+      display: block;
+    }
+
+    /* Section heading */
+    .section-heading {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    /* Password strength */
+    .pw-strength-bar {
+      height: 4px;
+      border-radius: 99px;
+      background: var(--border);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .pw-strength-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0;
+      transition: width .3s ease, background .3s ease;
+    }
+    .pw-strength-label {
+      font-size: .78rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .pw-requirements {
+      list-style: none;
+      margin-top: 10px;
+    }
+    .pw-requirements li {
+      font-size: .78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .pw-requirements li.met {
+      color: var(--success);
+    }
+    .pw-requirements li .req-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+    }
+
+    /* Review sections */
+    .review-section {
+      background: var(--slate);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .review-section-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .review-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: .85rem;
+    }
+    .review-row:not(:last-child) {
+      border-bottom: 1px solid var(--border);
+    }
+    .review-label {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .review-value {
+      color: var(--ink);
+      font-weight: 600;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-word;
+    }
+
+    /* Button row */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn-row .btn {
+      flex: 1;
+    }
+
+    /* Form control validation states */
+    .form-control.invalid {
+      border-color: var(--danger);
+      background: #FFF5F5;
+    }
+    .form-control.valid {
+      border-color: var(--success);
+    }
+    .field-error {
+      font-size: .75rem;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+      line-height: 1.4;
+    }
+    .form-control.invalid ~ .field-error {
+      display: block;
+    }
+    .field-success {
+      font-size: .75rem;
+      color: var(--success);
+      margin-top: 4px;
+      display: none;
+      line-height: 1.4;
+    }
+    .form-control.valid ~ .field-success {
+      display: block;
+    }
+  </style>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-graduation-cap-icon lucide-graduation-cap">
+            <path
+              d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+            <path d="M22 10v6" />
+            <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+          </svg></div>
+        <div class="brand-text">Iskolarly</div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">&larr; Back to Home</a></li>
+        <li><a href="/auth/login">Already have an account? Log In</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="register-wrap">
+    <div class="register-container">
+
+      <div class="register-header">
+        <div class="register-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            <path d="m15 5 4 4" />
+          </svg>
+        </div>
+        <h1>Create your Account</h1>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="steps" id="stepIndicator">
+        <div class="step active" data-step="1">
+          <div class="step-circle active" id="stepCircle1">1</div>
+          <div class="step-label">Personal Info</div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-circle" id="stepCircle2">2</div>
+          <div class="step-label">Account Setup</div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-circle" id="stepCircle3">3</div>
+          <div class="step-label">Review &amp; Submit</div>
+        </div>
+      </div>
 
       <% if (locals.error) { %>
-      <div class="alert alert-info mb-24" style="display:flex;">
-        <span class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert-icon lucide-triangle-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-        <div><%= error %></div>
-      </div>
-      <% } %>
+        <div class="alert alert-info mb-24" style="display:flex;">
+          <span class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="#222222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-triangle-alert-icon lucide-triangle-alert">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg></span>
+          <div>
+            <%= error %>
+          </div>
+        </div>
+        <% } %>
 
-      <% if (locals.message) { %>
-      <div class="alert alert-success mb-24" style="display:flex;">
-        <span class="alert-icon">✅</span>
-        <div><%= message %></div>
-      </div>
-      <% } %>
+          <% if (locals.message) { %>
+            <div class="alert alert-success mb-24" style="display:flex;">
+              <span class="alert-icon">&#x2705;</span>
+              <div>
+                <%= message %>
+              </div>
+            </div>
+            <% } %>
 
-      <form method="POST" action="/auth/register">
-        <div class="grid-2 gap-12">
-          <div class="form-group">
-            <label>First Name <span class="required">*</span></label>
-            <input type="text" class="form-control" name="first_name" required />
-          </div>
-          <div class="form-group">
-            <label>Middle Name</label>
-            <input type="text" class="form-control" name="middle_name" />
-          </div>
-        </div>
-        <div class="grid-2 gap-12">
-          <div class="form-group">
-            <label>Last Name <span class="required">*</span></label>
-            <input type="text" class="form-control" name="last_name" required />
-          </div>
-          <div class="form-group">
-            <label>Suffix</label>
-            <input type="text" class="form-control" name="suffix" placeholder="Jr., III" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Username <span class="required">*</span></label>
-          <input type="text" class="form-control" name="username" required />
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" class="form-control" name="email" />
-        </div>
-        <div class="form-group">
-          <label>Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" />
-        </div>
-        <div class="grid-2 gap-12">
-          <div class="form-group">
-            <label>Sex</label>
-            <select class="form-control" name="sex">
-              <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Prefer not to say">Prefer not to say</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Civil Status</label>
-            <select class="form-control" name="civil_status">
-              <option value="Single">Single</option>
-              <option value="Married">Married</option>
-              <option value="Divorced">Divorced</option>
-              <option value="Widowed">Widowed</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Date of Birth</label>
-          <input type="date" class="form-control" name="date_of_birth" />
-        </div>
-        <div class="form-group">
-          <label>Address</label>
-          <div class="grid-2 gap-12 mb-8">
-            <input type="text" class="form-control" name="addr_street" placeholder="Street" />
-            <input type="text" class="form-control" name="addr_barangay" placeholder="Barangay" />
-          </div>
-          <div class="grid-2 gap-12 mb-8">
-            <input type="text" class="form-control" name="addr_municipality" placeholder="Municipality" />
-            <input type="text" class="form-control" name="addr_province" placeholder="Province" />
-          </div>
-          <input type="text" class="form-control" name="addr_zip" placeholder="ZIP Code" />
-        </div>
-        <div class="form-group">
-          <label>Password <span class="required">*</span></label>
-          <input type="password" class="form-control" name="password" required minlength="8" />
-        </div>
-        <button type="submit" class="btn btn-primary btn-lg w-full mt-8">Create Account</button>
-      </form>
+              <form method="POST" action="/auth/register" id="registerForm" novalidate>
 
-      <div style="display:flex;align-items:center;gap:12px;margin:24px 0;">
-        <hr style="flex:1;border:none;border-top:1px solid var(--border);" />
-        <span style="font-size:.8rem;color:var(--muted);">or</span>
-        <hr style="flex:1;border:none;border-top:1px solid var(--border);" />
-      </div>
+                <!-- ==================== STEP 1: Personal Info ==================== -->
+                <div class="step-content active" id="step1">
+                  <div class="card">
+                    <h3 class="section-heading">Personal Information</h3>
 
-      <div class="text-center">
-        <p class="text-muted text-sm mb-8">Already have an account?</p>
-        <a href="/auth/login" class="btn btn-outline w-full">Log In</a>
-      </div>
+                    <div class="grid-2 gap-12">
+                      <div class="form-group">
+                        <label>First Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" name="first_name" id="first_name" required
+                          placeholder="Enter first name" />
+                        <div class="field-error">First name is required.</div>
+                      </div>
+                      <div class="form-group">
+                        <label>Middle Name</label>
+                        <input type="text" class="form-control" name="middle_name" id="middle_name"
+                          placeholder="Enter middle name" />
+                        <div class="field-error"></div>
+                      </div>
+                    </div>
+
+                    <div class="grid-2 gap-12">
+                      <div class="form-group">
+                        <label>Last Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" name="last_name" id="last_name" required
+                          placeholder="Enter last name" />
+                        <div class="field-error">Last name is required.</div>
+                      </div>
+                      <div class="form-group">
+                        <label>Suffix</label>
+                        <input type="text" class="form-control" name="suffix" id="suffix" placeholder="Jr., III" />
+                      </div>
+                    </div>
+
+                    <div class="grid-2 gap-12">
+                      <div class="form-group">
+                        <label>Date of Birth <span class="required">*</span></label>
+                        <input type="date" class="form-control" name="date_of_birth" id="date_of_birth" required />
+                        <div class="field-error">Date of birth is required.</div>
+                      </div>
+                      <div class="form-group">
+                        <label>Sex <span class="required">*</span></label>
+                        <select class="form-control" name="sex" id="sex" required>
+                          <option value="">Select</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                        <div class="field-error">Please select a sex.</div>
+                      </div>
+                    </div>
+
+                    <div class="grid-2 gap-12">
+                      <div class="form-group">
+                        <label>Civil Status</label>
+                        <select class="form-control" name="civil_status" id="civil_status">
+                          <option value="Single">Single</option>
+                          <option value="Married">Married</option>
+                          <option value="Divorced">Divorced</option>
+                          <option value="Widowed">Widowed</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" class="form-control" name="contact_number" id="contact_number"
+                          placeholder="e.g. 09171234567" />
+                        <div class="field-error"></div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" name="email" id="email"
+                          placeholder="you@example.com" />
+                        <div class="field-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Address</label>
+                      <div class="grid-2 gap-12 mb-8">
+                        <input type="text" class="form-control" name="addr_street" id="addr_street"
+                          placeholder="Street" />
+                        <input type="text" class="form-control" name="addr_barangay" id="addr_barangay"
+                          placeholder="Barangay" />
+                      </div>
+                      <div class="grid-2 gap-12 mb-8">
+                        <input type="text" class="form-control" name="addr_municipality" id="addr_municipality"
+                          placeholder="Municipality" />
+                        <input type="text" class="form-control" name="addr_province" id="addr_province"
+                          placeholder="Province" />
+                      </div>
+                      <input type="text" class="form-control" name="addr_zip" id="addr_zip" placeholder="ZIP Code" />
+                      <div class="field-error"></div>
+                    </div>
+
+                    <div class="btn-row mt-16">
+                      <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(2)">Next: Account Setup &rarr;</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ==================== STEP 2: Account Setup ==================== -->
+                <div class="step-content" id="step2">
+                  <div class="card">
+                    <h3 class="section-heading">Account Setup</h3>
+
+                    <div class="form-group">
+                      <label>Username <span class="required">*</span></label>
+                      <input type="text" class="form-control" name="username" id="username" required
+                        placeholder="Choose a username" />
+                      <div class="form-hint">4-20 characters, letters, numbers, underscores only.</div>
+                      <div class="field-error">Username must be 4-20 characters (letters, numbers, underscores).</div>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Password <span class="required">*</span></label>
+                      <input type="password" class="form-control" name="password" id="password" required
+                        placeholder="Create a strong password" />
+                      <div class="pw-strength-bar">
+                        <div class="pw-strength-fill" id="pwStrengthFill"></div>
+                      </div>
+                      <div class="pw-strength-label" id="pwStrengthLabel"></div>
+                      <div class="field-error" id="pwError"></div>
+
+                      <ul class="pw-requirements">
+                        <li id="reqLength">
+                          <span class="req-icon">&#x2717;</span>
+                          At least 8 characters
+                        </li>
+                        <li id="reqUpper">
+                          <span class="req-icon">&#x2717;</span>
+                          At least one uppercase letter
+                        </li>
+                        <li id="reqLower">
+                          <span class="req-icon">&#x2717;</span>
+                          At least one lowercase letter
+                        </li>
+                        <li id="reqSpecial">
+                          <span class="req-icon">&#x2717;</span>
+                          At least one special character
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Confirm Password <span class="required">*</span></label>
+                      <input type="password" class="form-control" name="confirm_password" id="confirm_password"
+                        required placeholder="Re-enter your password" />
+                      <div class="field-error" id="confirmPwError">Passwords do not match.</div>
+                    </div>
+
+                    <div class="btn-row mt-16">
+                      <button type="button" class="btn btn-outline btn-lg" onclick="goToStep(1)">&larr; Back</button>
+                      <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(3)">Next: Review &rarr;</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ==================== STEP 3: Review & Submit ==================== -->
+                <div class="step-content" id="step3">
+                  <div class="card">
+                    <h3 class="section-heading">Review Your Information</h3>
+
+                    <div class="alert alert-warn mb-24" style="display:flex;">
+                      <span class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                          fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                          <path d="M12 9v4" />
+                          <path d="M12 17h.01" />
+                        </svg></span>
+                      <div>Please review all your details before submitting. You can go back to make corrections.</div>
+                    </div>
+
+                    <div class="review-section">
+                      <div class="review-section-title">Personal Information</div>
+                      <div class="review-row">
+                        <span class="review-label">Full Name</span>
+                        <span class="review-value" id="reviewName">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Date of Birth</span>
+                        <span class="review-value" id="reviewDOB">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Contact Number</span>
+                        <span class="review-value" id="reviewContact">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Email Address</span>
+                        <span class="review-value" id="reviewEmail">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Sex</span>
+                        <span class="review-value" id="reviewSex">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Civil Status</span>
+                        <span class="review-value" id="reviewCivil">-</span>
+                      </div>
+                    </div>
+
+                    <div class="review-section">
+                      <div class="review-section-title">Account Information</div>
+                      <div class="review-row">
+                        <span class="review-label">Username</span>
+                        <span class="review-value" id="reviewUsername">-</span>
+                      </div>
+                      <div class="review-row">
+                        <span class="review-label">Password</span>
+                        <span class="review-value" id="reviewPassword">&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</span>
+                      </div>
+                    </div>
+
+                    <div class="btn-row mt-16">
+                      <button type="button" class="btn btn-outline btn-lg" onclick="goToStep(2)">&larr; Back</button>
+                      <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
+                    </div>
+                  </div>
+                </div>
+
+              </form>
     </div>
   </div>
-</div>
-</body>
-</html>
+
+  <script>
+    (function () {
+      const form = document.getElementById('registerForm');
+      let currentStep = 1;
+
+      /* ========== Per-field validators ========== */
+      const validators = {
+        first_name: {
+          validate: function (val) {
+            if (!val.trim()) return 'First name is required.';
+            if (val.trim().length < 2) return 'First name must be at least 2 characters.';
+            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'First name can only contain letters.';
+            return '';
+          }
+        },
+        middle_name: {
+          validate: function (val) {
+            if (val.trim() && !/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Middle name can only contain letters.';
+            return '';
+          }
+        },
+        last_name: {
+          validate: function (val) {
+            if (!val.trim()) return 'Last name is required.';
+            if (val.trim().length < 2) return 'Last name must be at least 2 characters.';
+            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Last name can only contain letters.';
+            return '';
+          }
+        },
+        suffix: { validate: function () { return ''; } },
+        date_of_birth: {
+          validate: function (val) {
+            if (!val) return 'Date of birth is required.';
+            const d = new Date(val + 'T00:00:00');
+            const now = new Date();
+            const minAge = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate());
+            const maxAge = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+            if (isNaN(d.getTime())) return 'Invalid date.';
+            if (d > now) return 'Date of birth cannot be in the future.';
+            if (d < minAge) return 'Please enter a valid date of birth.';
+            if (d > maxAge) return 'You must be at least 10 years old.';
+            return '';
+          }
+        },
+        sex: {
+          validate: function (val) {
+            if (!val) return 'Please select a sex.';
+            return '';
+          }
+        },
+        civil_status: { validate: function () { return ''; } },
+        contact_number: {
+          validate: function (val) {
+            if (!val.trim()) return '';
+            const cleaned = val.trim().replace(/[\s\-\(\)]/g, '');
+            if (!/^09\d{9}$/.test(cleaned) && !/^\+639\d{9}$/.test(cleaned)) return 'Enter a valid PH mobile number (e.g. 09171234567).';
+            return '';
+          }
+        },
+        email: {
+          validate: function (val) {
+            if (!val.trim()) return '';
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) return 'Enter a valid email address.';
+            if (val.trim().length > 254) return 'Email address is too long.';
+            return '';
+          }
+        },
+        addr_street: { validate: function () { return ''; } },
+        addr_barangay: { validate: function () { return ''; } },
+        addr_municipality: { validate: function () { return ''; } },
+        addr_province: { validate: function () { return ''; } },
+        addr_zip: {
+          validate: function (val) {
+            if (!val.trim()) return '';
+            if (!/^\d{4}$/.test(val.trim())) return 'ZIP code must be 4 digits.';
+            return '';
+          }
+        },
+        username: {
+          validate: function (val) {
+            if (!val.trim()) return 'Username is required.';
+            if (val.length < 4) return 'Username must be at least 4 characters.';
+            if (val.length > 20) return 'Username must be at most 20 characters.';
+            if (!/^[A-Za-z0-9_]+$/.test(val)) return 'Only letters, numbers, and underscores allowed.';
+            return '';
+          }
+        },
+        password: {
+          validate: function (val) {
+            if (!val) return 'Password is required.';
+            if (val.length < 8) return 'Password must be at least 8 characters.';
+            if (!/[A-Z]/.test(val)) return 'Password needs an uppercase letter.';
+            if (!/[a-z]/.test(val)) return 'Password needs a lowercase letter.';
+            if (!/[^A-Za-z0-9]/.test(val)) return 'Password needs a special character.';
+            return '';
+          }
+        },
+        confirm_password: {
+          validate: function (val) {
+            const pw = document.getElementById('password').value;
+            if (!val) return 'Please confirm your password.';
+            if (val !== pw) return 'Passwords do not match.';
+            return '';
+          }
+        }
+      };
+
+      /* ========== Validate a single field ========== */
+      function validateField(el) {
+        const name = el.name;
+        const validator = validators[name];
+        if (!validator) return true;
+
+        el.classList.remove('invalid', 'valid');
+        const errEl = el.closest('.form-group').querySelector('.field-error');
+        if (errEl) errEl.style.display = 'none';
+
+        const error = validator.validate(el.value);
+        if (error) {
+          el.classList.add('invalid');
+          if (errEl) { errEl.textContent = error; errEl.style.display = 'block'; }
+          return false;
+        } else if (el.value.trim()) {
+          el.classList.add('valid');
+        }
+        return true;
+      }
+
+      /* ========== Validate all fields in a step ========== */
+      function validateStep(step) {
+        const stepEl = document.getElementById('step' + step);
+        const inputs = stepEl.querySelectorAll('.form-control');
+        let allValid = true;
+
+        inputs.forEach(function (el) {
+          if (el.name && validators[el.name]) {
+            if (!validateField(el)) allValid = false;
+          }
+        });
+
+        return allValid;
+      }
+
+      /* ========== Attach real-time validation to all fields ========== */
+      document.querySelectorAll('.form-control').forEach(function (el) {
+        if (el.name && validators[el.name]) {
+          el.addEventListener('input', function () { validateField(this); });
+          el.addEventListener('blur', function () { validateField(this); });
+          el.addEventListener('change', function () { validateField(this); });
+        }
+      });
+
+      /* ========== Step navigation ========== */
+      window.goToStep = function (step) {
+        if (step > currentStep) {
+          if (!validateStep(currentStep)) {
+            // Scroll to first error
+            const first = document.querySelector('.form-control.invalid');
+            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+        }
+
+        currentStep = step;
+        updateUI();
+        if (step === 3) populateReview();
+        window.scrollTo({ top: form.offsetTop - 80, behavior: 'smooth' });
+      };
+
+      function updateUI() {
+        for (let i = 1; i <= 3; i++) {
+          const content = document.getElementById('step' + i);
+          const circle = document.getElementById('stepCircle' + i);
+          const stepEl = document.querySelector('.step[data-step="' + i + '"]');
+
+          content.classList.toggle('active', i === currentStep);
+          circle.classList.remove('active', 'done');
+          stepEl.classList.remove('active', 'done');
+          circle.innerHTML = i;
+
+          if (i < currentStep) {
+            circle.classList.add('done');
+            stepEl.classList.add('done');
+            circle.innerHTML = '&#x2713;';
+          } else if (i === currentStep) {
+            circle.classList.add('active');
+            stepEl.classList.add('active');
+          }
+        }
+      }
+
+      /* ========== Password strength ========== */
+      const pwInput = document.getElementById('password');
+      const strengthFill = document.getElementById('pwStrengthFill');
+      const strengthLabel = document.getElementById('pwStrengthLabel');
+      const reqLength = document.getElementById('reqLength');
+      const reqUpper = document.getElementById('reqUpper');
+      const reqLower = document.getElementById('reqLower');
+      const reqSpecial = document.getElementById('reqSpecial');
+
+      const strengthConfig = [
+        { color: '#B91C1C', label: 'Weak', textColor: '#B91C1C' },
+        { color: '#EA580C', label: 'Fair', textColor: '#EA580C' },
+        { color: '#2563EB', label: 'Good', textColor: '#2563EB' },
+        { color: '#1d8a41', label: 'Strong', textColor: '#1d8a41' }
+      ];
+
+      pwInput.addEventListener('input', function () {
+        const val = this.value;
+        let score = 0;
+
+        const hasLength = val.length >= 8;
+        const hasUpper = /[A-Z]/.test(val);
+        const hasLower = /[a-z]/.test(val);
+        const hasSpecial = /[^A-Za-z0-9]/.test(val);
+
+        setReq(reqLength, hasLength);
+        setReq(reqUpper, hasUpper);
+        setReq(reqLower, hasLower);
+        setReq(reqSpecial, hasSpecial);
+
+        if (hasLength) score++;
+        if (hasUpper) score++;
+        if (hasLower) score++;
+        if (hasSpecial) score++;
+
+        if (val.length === 0) {
+          strengthFill.style.width = '0';
+          strengthLabel.textContent = '';
+          return;
+        }
+
+        const level = Math.min(score - 1, 3);
+        const cfg = strengthConfig[level] || strengthConfig[0];
+        strengthFill.style.width = ((score / 4) * 100) + '%';
+        strengthFill.style.background = cfg.color;
+        strengthLabel.textContent = cfg.label;
+        strengthLabel.style.color = cfg.textColor;
+      });
+
+      function setReq(el, met) {
+        el.classList.toggle('met', met);
+        el.querySelector('.req-icon').innerHTML = met ? '&#x2713;' : '&#x2717;';
+      }
+
+      /* ========== Username sanitization ========== */
+      document.getElementById('username').addEventListener('input', function () {
+        const cursor = this.selectionStart;
+        const prev = this.value;
+        this.value = this.value.replace(/[^A-Za-z0-9_]/g, '');
+        if (this.value.length > 20) this.value = this.value.slice(0, 20);
+        if (this.value !== prev) {
+          this.setSelectionRange(cursor - 1, cursor - 1);
+        }
+      });
+
+      /* ========== Review step ========== */
+      function populateReview() {
+        const fn = document.getElementById('first_name').value.trim();
+        const mn = document.getElementById('middle_name').value.trim();
+        const ln = document.getElementById('last_name').value.trim();
+        const sf = document.getElementById('suffix').value.trim();
+
+        let fullName = ln ? ln + ', ' + fn : fn;
+        if (mn) fullName += ' ' + mn.charAt(0) + '.';
+        if (sf) fullName += ' ' + sf;
+        document.getElementById('reviewName').textContent = fullName || '-';
+
+        const dob = document.getElementById('date_of_birth').value;
+        if (dob) {
+          const d = new Date(dob + 'T00:00:00');
+          document.getElementById('reviewDOB').textContent = d.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+          });
+        } else {
+          document.getElementById('reviewDOB').textContent = '-';
+        }
+
+        document.getElementById('reviewContact').textContent =
+          document.getElementById('contact_number').value.trim() || '-';
+        document.getElementById('reviewEmail').textContent =
+          document.getElementById('email').value.trim() || '-';
+        document.getElementById('reviewSex').textContent =
+          document.getElementById('sex').value || '-';
+        document.getElementById('reviewCivil').textContent =
+          document.getElementById('civil_status').value || '-';
+        document.getElementById('reviewUsername').textContent =
+          document.getElementById('username').value.trim() || '-';
+        document.getElementById('reviewPassword').textContent =
+          document.getElementById('password').value ? '\u2022'.repeat(Math.min(document.getElementById('password').value.length, 12)) : '-';
+      }
+
+      /* ========== Submit: validate all, strip confirm, disable button ========== */
+      form.addEventListener('submit', function (e) {
+        // Validate step 2 (account setup)
+        if (!validateStep(2)) {
+          e.preventDefault();
+          const first = document.querySelector('.form-control.invalid');
+          if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        // Also validate step 1 fields
+        if (!validateStep(1)) {
+          e.preventDefault();
+          currentStep = 1;
+          updateUI();
+          const first = document.querySelector('.form-control.invalid');
+          if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        const confirmEl = document.getElementById('confirm_password');
+        confirmEl.removeAttribute('name');
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Creating Account...';
+      });
+
+    })();
+  </script>
+  </body>
+
+  </html>

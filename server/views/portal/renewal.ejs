@@ -23,9 +23,171 @@
       <p>Submit your requirements to maintain your active scholarship status.</p>
     </div>
 
+    <% if (locals.error) { %>
+    <div class="alert alert-danger mb-24"><%= error %></div>
+    <% } %>
+    <% if (locals.message) { %>
+    <div class="alert alert-success mb-24"><%= message %></div>
+    <% } %>
+
+    <div class="grid-4 mb-32">
+      <div class="stat-card">
+        <div class="card-icon gold" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-award-icon lucide-award"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></div>
+        <div><div class="stat-value"><%= activeApps.filter(function(a){return a.status==='approved'}).length %></div><div class="stat-label">Active Scholarships</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon green" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-icon lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div><div class="stat-value"><%= history.filter(function(a){return a.status==='approved'}).length %></div><div class="stat-label">Approved</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon navy" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-icon lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="stat-value"><%= history.filter(function(a){return a.status==='pending'||a.status==='review'}).length %></div><div class="stat-label">Under Review</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon blue" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></div>
+        <div><div class="stat-value"><%= history.length %></div><div class="stat-label">Total Applications</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24 mb-32">
+      <div class="card">
+        <div class="card-header"><h3>Current Scholarship</h3></div>
+        <% var approved = activeApps.filter(function(a){return a.status==='approved'}); %>
+        <% if (approved.length > 0) { %>
+          <% approved.forEach(function(app) { %>
+          <div style="padding:16px;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;">
+            <div class="flex justify-between items-center mb-8">
+              <h4 style="margin:0;"><%= app.program.name %></h4>
+              <span class="badge badge-approved">Active</span>
+            </div>
+            <div style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">
+              <%= app.program.description %>
+            </div>
+            <div class="flex gap-16" style="font-size:.8rem;">
+              <div><span style="color:var(--muted);">Awarded:</span> <%= new Date(app.created_at).toLocaleDateString() %></div>
+              <% if (app.program.gpa_requirement) { %>
+              <div><span style="color:var(--muted);">GPA Req:</span> <%= app.program.gpa_requirement %></div>
+              <% } %>
+              <div><span style="color:var(--muted);">Year:</span> <%= app.academic_year || '--' %></div>
+            </div>
+            <% if (student.gpa && app.program.gpa_requirement) { %>
+            <div style="margin-top:12px;padding:10px 14px;background:var(--slate);border-radius:8px;font-size:.82rem;">
+              <strong>GPA Compliance:</strong>
+              <% if (parseFloat(student.gpa) <= parseFloat(app.program.gpa_requirement)) { %>
+                <span style="color:var(--success);font-weight:600;"> Met (<%= student.gpa %>)</span>
+              <% } else { %>
+                <span style="color:var(--danger);font-weight:600;"> Not Met (<%= student.gpa %> / <%= app.program.gpa_requirement %>)</span>
+              <% } %>
+            </div>
+            <% } %>
+            <div style="margin-top:12px;">
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px;">Documents Submitted: <strong><%= app.documents.length %></strong></div>
+              <div class="progress-bar" style="max-width:200px;">
+                <div class="progress-fill" style="width:<%= Math.min(100, app.documents.length * 25) %>%"></div>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+        <% } else { %>
+          <% var pendingReview = activeApps.filter(function(a){return a.status!=='approved'}); %>
+          <% if (pendingReview.length > 0) { %>
+            <% pendingReview.forEach(function(app) { %>
+            <div style="padding:16px;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;">
+              <div class="flex justify-between items-center mb-8">
+                <h4 style="margin:0;"><%= app.program.name %></h4>
+                <span class="badge badge-<%= app.status === 'review' ? 'review' : 'pending' %>"><%= app.status %></span>
+              </div>
+              <div style="font-size:.85rem;color:var(--muted);margin-bottom:8px;">
+                <%= app.program.description %>
+              </div>
+              <div style="font-size:.8rem;color:var(--muted);">
+                Submitted: <%= new Date(app.created_at).toLocaleDateString() %>
+                <% if (app.remarks) { %> &middot; Remarks: <%= app.remarks %><% } %>
+              </div>
+            </div>
+            <% }); %>
+          <% } else { %>
+            <p class="text-muted">You have no active scholarships. <a href="/portal/application">Apply now &rarr;</a></p>
+          <% } %>
+        <% } %>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Submit Renewal</h3></div>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:20px;">Apply for renewal of your scholarship for the upcoming academic year.</p>
+        <form method="POST" action="/portal/application">
+          <div class="form-group">
+            <label>Scholarship Program <span class="required">*</span></label>
+            <select class="form-control" name="program_id" required>
+              <option value="">-- Select Program --</option>
+              <% var publicPrograms = programs.filter(function(p) { return p.type === 'public'; }); %>
+              <% var privatePrograms = programs.filter(function(p) { return p.type === 'private'; }); %>
+              <% if (publicPrograms.length > 0) { %>
+              <optgroup label="Public Programs">
+                <% publicPrograms.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+                <% }); %>
+              </optgroup>
+              <% } %>
+              <% if (privatePrograms.length > 0) { %>
+              <optgroup label="Private Programs">
+                <% privatePrograms.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+                <% }); %>
+              </optgroup>
+              <% } %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Academic Year</label>
+            <input type="text" class="form-control" name="academic_year" placeholder="e.g., 2025-2026" />
+          </div>
+          <div class="form-group">
+            <label>Semester</label>
+            <select class="form-control" name="semester">
+              <option value="">Select</option>
+              <option value="1st">1st Semester</option>
+              <option value="2nd">2nd Semester</option>
+              <option value="summer">Summer</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-full">Submit Renewal</button>
+        </form>
+      </div>
+    </div>
+
     <div class="card">
-      <div class="card-header"><h3>Current Status</h3></div>
-      <p class="text-muted">Renewal features coming soon.</p>
+      <div class="card-header"><h3>Application History</h3></div>
+      <% if (history.length > 0) { %>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Program</th>
+              <th>Academic Year</th>
+              <th>Semester</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% history.forEach(function(app) { %>
+            <tr>
+              <td style="font-weight:600;"><%= app.program.name %></td>
+              <td><%= app.academic_year || '--' %></td>
+              <td><%= app.semester || '--' %></td>
+              <td><%= new Date(app.created_at).toLocaleDateString() %></td>
+              <td><span class="badge badge-<%= app.status === 'approved' ? 'approved' : app.status === 'rejected' ? 'rejected' : app.status === 'review' ? 'review' : 'pending' %>"><%= app.status %></span></td>
+              <td><%= app.remarks || '--' %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <p class="text-muted">No applications yet.</p>
+      <% } %>
     </div>
   </main>
 </div>

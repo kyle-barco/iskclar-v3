@@ -13,22 +13,50 @@
   </div>
 </nav>
 <div class="dashboard-layout">
-  <main class="main-content" style="margin-left:0;padding:32px;">
-    <h1 style="font-size:1.8rem;margin-bottom:24px;">Students</h1>
+  <%- include('partials/sidebar', { currentPage: 'students', adminRole }) %>
+  <main class="main-content" style="padding:32px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <h1 style="font-size:1.8rem;">Students</h1>
+    </div>
+
+    <form method="GET" action="/admin/students" style="display:flex;gap:8px;margin-bottom:24px;align-items:center;">
+      <input type="text" name="search" class="form-control" placeholder="Search by name, email, or student ID..." value="<%= search || '' %>" style="max-width:400px;">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <% if (search) { %>
+        <a href="/admin/students" class="btn btn-outline">Clear</a>
+      <% } %>
+    </form>
+
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>College</th><th>Program</th><th>Registered</th></tr></thead>
-          <tbody>
-            <% students.forEach(function(s) { %>
+          <thead>
             <tr>
-              <td><%= s.first_name %> <%= s.last_name %></td>
-              <td><%= s.email %></td>
-              <td><%= s.college || '-' %></td>
-              <td><%= s.degree_program || '-' %></td>
-              <td><%= new Date(s.created_at).toLocaleDateString() %></td>
+              <th>Name</th>
+              <th>Student ID</th>
+              <th>College</th>
+              <th>Course</th>
+              <th>Year Level</th>
+              <th>Contact</th>
+              <th>Date Registered</th>
             </tr>
-            <% }); %>
+          </thead>
+          <tbody>
+            <% if (students.length === 0) { %>
+              <tr><td colspan="7" class="alert-info" style="text-align:center;padding:24px;">No students found.</td></tr>
+            <% } else { %>
+              <% students.forEach(function(s) { %>
+                <tr>
+                  <td><%= s.last_name %>, <%= s.first_name %><%= s.middle_name ? ' ' + s.middle_name.charAt(0) + '.' : '' %></td>
+                  <td><%= s.student_id || '-' %></td>
+                  <td><%= s.college || '-' %></td>
+                  <td><%= s.degree_program || '-' %></td>
+                  <td><%= s.year_level || '-' %></td>
+                  <td><%= s.contact_number || s.email || '-' %></td>
+                  <td><%= new Date(s.created_at).toLocaleDateString() %></td>
+                </tr>
+              <% }); %>
+            <% } %>
           </tbody>
         </table>
       </div>

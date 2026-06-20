@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
+const { createPrisma } = require('../lib/prisma');
 
-const prisma = new PrismaClient({
+const prisma = createPrisma({
   log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 });
 

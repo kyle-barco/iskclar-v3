@@ -1,0 +1,69 @@
+<%- include('../partials/head', { title: 'Programs | Iskolarly' }) %>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin/applications">Applications</a></li>
+      <li><a href="/admin/students">Students</a></li>
+      <li><a href="/auth/logout">Log Out</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'programs', adminRole: adminRole }) %>
+  <main class="main-content" style="padding:32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h1 style="font-size:1.8rem;">Scholarship Programs</h1>
+      <a href="/admin/programs/new" class="btn btn-primary btn-lg">Add Program</a>
+    </div>
+
+    <% if (message) { %>
+    <div class="alert-success mb-24"><%= message %></div>
+    <% } %>
+    <% if (error) { %>
+    <div class="alert-danger mb-24"><%= error %></div>
+    <% } %>
+
+    <% if (!programs || programs.length === 0) { %>
+    <div class="alert-info">No scholarship programs yet. <a href="/admin/programs/new">Create the first program</a>.</div>
+    <% } else { %>
+    <div class="grid-2 gap-12">
+      <% programs.forEach(function(p) { %>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <h3 style="font-size:1.1rem;font-weight:700;margin:0;"><%= p.name %></h3>
+          <span class="badge <%= p.type === 'public' ? 'badge-new' : 'badge-gold' %>"><%= p.type %></span>
+        </div>
+        <p class="text-sm text-muted" style="margin-bottom:16px;">
+          <%= p.description ? p.description.substring(0, 100) + (p.description.length > 100 ? '...' : '') : 'No description' %>
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.875rem;margin-bottom:16px;">
+          <div><strong>Slots:</strong> <%= p.slots %></div>
+          <div><strong>GPA Req:</strong> <%= p.gpa_requirement %></div>
+          <div><strong>Year:</strong> <%= p.academic_year %></div>
+          <div><strong>Semester:</strong> <%= p.semester %></div>
+          <div><strong>Start:</strong> <%= new Date(p.application_start).toLocaleDateString() %></div>
+          <div><strong>End:</strong> <%= new Date(p.application_end).toLocaleDateString() %></div>
+          <div><strong>Applications:</strong> <%= p._count ? p._count.applications : 0 %></div>
+          <div>
+            <span class="badge <%= p.is_active ? 'badge-active' : 'badge-inactive' %>"><%= p.is_active ? 'Active' : 'Inactive' %></span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;border-top:1px solid var(--border);padding-top:12px;">
+          <a href="/admin/programs/<%= p.id %>/edit" class="btn btn-sm btn-primary">Edit</a>
+          <form method="POST" action="/admin/programs/<%= p.id %>/delete" onsubmit="return confirm('Delete this program? This action cannot be undone.');" style="margin:0;">
+            <button type="submit" class="btn btn-sm btn-outline" style="color:var(--danger);border-color:var(--danger);">Delete</button>
+          </form>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+  </main>
+</div>
+</body>
+</html>

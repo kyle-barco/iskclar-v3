@@ -64,7 +64,33 @@ router.post('/application', requireAuth, async (req, res) => {
 router.get('/renewal', requireAuth, async (req, res) => {
   try {
     const student = await prisma.students.findUnique({ where: { id: req.user.id } });
-    res.render('portal/renewal', { student });
+    const activeApps = await prisma.applications.findMany({
+      where: { student_id: req.user.id, status: { in: ['approved', 'pending', 'review'] } },
+      include: { program: true, documents: true },
+      orderBy: { created_at: 'desc' },
+    });
+    const history = await prisma.applications.findMany({
+      where: { student_id: req.user.id },
+      include: { program: true },
+      orderBy: { created_at: 'desc' },
+    });
+    const programs = await prisma.scholarship_programs.findMany({
+      where: {
+        is_active: true,
+        application_start: { lte: new Date() },
+        application_end: { gte: new Date() },
+      },
+      orderBy: { application_end: 'asc' },
+    });
+
+    res.render('portal/renewal', {
+      student,
+      activeApps,
+      history,
+      programs,
+      error: null,
+      message: null,
+    });
   } catch (err) {
     console.error('Renewal page error:', err);
     res.redirect('/portal');
@@ -83,8 +109,16 @@ router.get('/documents', requireAuth, async (req, res) => {
       where: { application: { student_id: req.user.id } },
       orderBy: { created_at: 'desc' },
     });
+    const activeApps = applications.filter(a => a.status !== 'rejected' && a.status !== 'withdrawn');
 
-    res.render('portal/documents', { student, applications, documents });
+    res.render('portal/documents', {
+      student,
+      applications,
+      documents,
+      activeApps,
+      error: req.query.error || null,
+      message: req.query.message || null,
+    });
   } catch (err) {
     console.error('Documents page error:', err);
     res.redirect('/portal');

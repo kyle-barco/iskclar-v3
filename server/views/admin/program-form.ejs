@@ -1,0 +1,103 @@
+<%- include('../partials/head', { title: (program ? 'Edit Program' : 'Add Program') + ' | Iskolarly' }) %>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin/applications">Applications</a></li>
+      <li><a href="/admin/students">Students</a></li>
+      <li><a href="/auth/logout">Log Out</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'programs', adminRole: adminRole }) %>
+  <main class="main-content" style="padding:32px;">
+    <h1 style="font-size:1.8rem;margin-bottom:24px;"><%= program ? 'Edit Scholarship Program' : 'Add Scholarship Program' %></h1>
+
+    <% if (error) { %>
+    <div class="alert-danger mb-24"><%= error %></div>
+    <% } %>
+
+    <div class="card card-lg">
+      <form method="POST" action="/admin/programs<%= program ? '/' + program.id : '' %>">
+        <div class="form-group">
+          <label>Name <span class="text-danger">*</span></label>
+          <input type="text" name="name" class="form-control" value="<%= program ? program.name : '' %>" required />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" class="form-control"><%= program ? program.description : '' %></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label>Slots</label>
+            <input type="number" name="slots" class="form-control" value="<%= program ? program.slots : '' %>" />
+          </div>
+
+          <div class="form-group">
+            <label>GPA Requirement</label>
+            <input type="number" name="gpa_requirement" class="form-control" step="0.01" value="<%= program ? program.gpa_requirement : '' %>" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label>Type <span class="text-danger">*</span></label>
+            <select name="type" class="form-control" required>
+              <option value="public" <%= program && program.type === 'public' ? 'selected' : '' %>>Public</option>
+              <option value="private" <%= program && program.type === 'private' ? 'selected' : '' %>>Private</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Academic Year <span class="text-danger">*</span></label>
+            <input type="text" name="academic_year" class="form-control" placeholder="e.g. 2026-2027" value="<%= program ? program.academic_year : '' %>" required />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label>Semester <span class="text-danger">*</span></label>
+            <select name="semester" class="form-control" required>
+              <option value="1st" <%= program && program.semester === '1st' ? 'selected' : '' %>>1st</option>
+              <option value="2nd" <%= program && program.semester === '2nd' ? 'selected' : '' %>>2nd</option>
+              <option value="Summer" <%= program && program.semester === 'Summer' ? 'selected' : '' %>>Summer</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Application Start <span class="text-danger">*</span></label>
+            <input type="date" name="application_start" class="form-control" value="<%= program ? new Date(program.application_start).toISOString().split('T')[0] : '' %>" required />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div class="form-group">
+            <label>Application End <span class="text-danger">*</span></label>
+            <input type="date" name="application_end" class="form-control" value="<%= program ? new Date(program.application_end).toISOString().split('T')[0] : '' %>" required />
+          </div>
+
+          <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" name="is_active" value="1" <%= program && program.is_active ? 'checked' : '' %> />
+              Is Active
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <button type="submit" class="btn btn-primary btn-lg"><%= program ? 'Update Program' : 'Create Program' %></button>
+          <a href="/admin/programs" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+</body>
+</html>

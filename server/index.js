@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const { PrismaClient } = require('@prisma/client');
+const { createPrisma } = require('./lib/prisma');
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
@@ -14,7 +14,7 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 
 const app = express();
-const prisma = new PrismaClient();
+const prisma = createPrisma();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -39,7 +39,7 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.get('/', (req, res) => res.redirect('/auth/login'));
+app.get('/', (req, res) => res.render('index'));
 
 app.use('/auth', authRoutes);
 app.use('/portal', profileRoutes);

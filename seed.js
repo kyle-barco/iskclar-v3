@@ -1,8 +1,8 @@
 require('dotenv').config();
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const { createPrisma } = require('./server/lib/prisma');
 
-const prisma = new PrismaClient();
+const prisma = createPrisma();
 
 async function main() {
   console.log('Seeding database...');
@@ -11,7 +11,7 @@ async function main() {
   const adminHash = await bcrypt.hash('admin123', 10);
   await prisma.admins.upsert({
     where: { email: 'admin@iskolarly.com' },
-    update: {},
+    update: { password_hash: adminHash },
     create: {
       email: 'admin@iskolarly.com',
       password_hash: adminHash,
@@ -26,7 +26,7 @@ async function main() {
   const superHash = await bcrypt.hash('superadmin123', 10);
   await prisma.admins.upsert({
     where: { email: 'superadmin@iskolarly.com' },
-    update: {},
+    update: { password_hash: superHash },
     create: {
       email: 'superadmin@iskolarly.com',
       password_hash: superHash,
