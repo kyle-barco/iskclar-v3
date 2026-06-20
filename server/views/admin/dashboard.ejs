@@ -87,7 +87,7 @@
                   <td><span class="badge badge-<%= badgeClass %>"><%= app.status.replace('_', ' ') %></span></td>
                   <td><%= new Date(app.created_at).toLocaleDateString() %></td>
                   <td class="td-actions">
-                    <a href="/admin/applications/<%= app.id %>" class="btn btn-sm btn-outline">View</a>
+                    <a href="/admin/students/<%= app.student_id %>" class="btn btn-sm btn-outline">View</a>
                     <form method="POST" action="/admin/applications/<%= app.id %>" style="display:inline-flex;gap:4px;">
                       <select name="status" class="form-control" style="width:auto;font-size:.8rem;padding:4px 8px;">
                         <option value="pending" <%= app.status === 'pending' ? 'selected' : '' %>>Pending</option>

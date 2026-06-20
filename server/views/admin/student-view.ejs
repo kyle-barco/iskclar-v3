@@ -1,0 +1,138 @@
+<%- include('../partials/head', { title: 'Student Details | Iskolarly' }) %>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin/applications">Applications</a></li>
+      <li><a href="/auth/logout">Log Out</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'students', adminRole }) %>
+  <main class="main-content" style="padding:32px;">
+    <a href="/admin/students" class="btn btn-outline mb-16" style="display:inline-flex;gap:6px;">&larr; Back to Students</a>
+
+    <% if (locals.message) { %>
+    <div class="alert alert-success mb-24" style="display:flex;"><span class="alert-icon">&#10003;</span><div><%= message %></div></div>
+    <% } %>
+    <% if (locals.error) { %>
+    <div class="alert alert-danger mb-24" style="display:flex;"><span class="alert-icon">&#9888;</span><div><%= error %></div></div>
+    <% } %>
+
+    <div class="card mb-24">
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+        <div style="width:72px;height:72px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:var(--navy);"><%= (s.first_name || '?')[0].toUpperCase() %></div>
+        <div>
+          <h2 style="font-size:1.4rem;margin-bottom:4px;"><%= s.first_name %> <%= s.middle_name ? s.middle_name + ' ' : '' %><%= s.last_name %> <%= s.suffix || '' %></h2>
+          <p style="color:var(--muted);font-size:.875rem;">
+            <%= s.student_id || 'No ID' %> &middot; <%= s.degree_program || 'No Course' %>
+            <% if (s.year_level) { %> &middot; <%= s.year_level %><% } %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-16 mb-24">
+      <div class="card">
+        <div class="card-header"><h3>Personal Information</h3></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Last Name</span><span class="info-value"><%= s.last_name %></span></div>
+          <div class="info-item"><span class="info-label">First Name</span><span class="info-value"><%= s.first_name %></span></div>
+          <div class="info-item"><span class="info-label">Middle Name</span><span class="info-value"><%= s.middle_name || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Suffix</span><span class="info-value"><%= s.suffix || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Date of Birth</span><span class="info-value"><%= s.date_of_birth ? new Date(s.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-' %></span></div>
+          <div class="info-item"><span class="info-label">Sex</span><span class="info-value"><%= s.sex %></span></div>
+          <div class="info-item"><span class="info-label">Civil Status</span><span class="info-value"><%= s.civil_status %></span></div>
+          <div class="info-item"><span class="info-label">Nationality</span><span class="info-value"><%= s.nationality %></span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Academic Information</h3></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Student ID</span><span class="info-value"><%= s.student_id || '-' %></span></div>
+          <div class="info-item"><span class="info-label">College</span><span class="info-value"><%= s.college || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Degree Program</span><span class="info-value"><%= s.degree_program || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Year Level</span><span class="info-value"><%= s.year_level || '-' %></span></div>
+          <div class="info-item"><span class="info-label">GPA</span><span class="info-value"><%= s.gpa || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Enrolled Units</span><span class="info-value"><%= s.enrolled_units || '-' %></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-16 mb-24">
+      <div class="card">
+        <div class="card-header"><h3>Contact Information</h3></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Contact Number</span><span class="info-value"><%= s.contact_number || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Email</span><span class="info-value"><%= s.email || '-' %></span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Address</h3></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Street</span><span class="info-value"><%= s.addr_street || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Barangay</span><span class="info-value"><%= s.addr_barangay || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Municipality</span><span class="info-value"><%= s.addr_municipality || '-' %></span></div>
+          <div class="info-item"><span class="info-label">Province</span><span class="info-value"><%= s.addr_province || '-' %></span></div>
+          <div class="info-item"><span class="info-label">ZIP Code</span><span class="info-value"><%= s.addr_zip || '-' %></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-24">
+      <div class="card-header"><h3>Family Background</h3></div>
+      <div class="info-grid">
+        <div class="info-item"><span class="info-label">Father's Name</span><span class="info-value"><%= s.father_name || '-' %></span></div>
+        <div class="info-item"><span class="info-label">Father's Occupation</span><span class="info-value"><%= s.father_occ || '-' %></span></div>
+        <div class="info-item"><span class="info-label">Mother's Name</span><span class="info-value"><%= s.mother_name || '-' %></span></div>
+        <div class="info-item"><span class="info-label">Mother's Occupation</span><span class="info-value"><%= s.mother_occ || '-' %></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Applications (<%= applications.length %>)</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Program</th>
+              <th>Status</th>
+              <th>Academic Year</th>
+              <th>Semester</th>
+              <th>Date Applied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (applications.length === 0) { %>
+              <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">No applications yet.</td></tr>
+            <% } else { %>
+              <% var badgeMap = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected', under_review: 'badge-review', waitlisted: 'badge-gold' }; %>
+              <% applications.forEach(function(a) { %>
+                <tr>
+                  <td><%= a.program.name %></td>
+                  <td><span class="badge <%= badgeMap[a.status] || 'badge-pending' %>"><%= a.status.replace('_', ' ') %></span></td>
+                  <td><%= a.academic_year || '-' %></td>
+                  <td><%= a.semester || '-' %></td>
+                  <td><%= new Date(a.created_at).toLocaleDateString() %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<style>
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 8px 0; }
+.info-item { display: flex; flex-direction: column; gap: 2px; }
+.info-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.info-value { font-size: .925rem; color: var(--ink); }
+</style>
+</body>
+</html>

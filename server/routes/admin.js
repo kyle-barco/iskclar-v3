@@ -109,6 +109,30 @@ router.get('/students', requireAdmin, async (req, res) => {
   }
 });
 
+router.get('/students/:id', requireAdmin, async (req, res) => {
+  try {
+    const s = await prisma.students.findUnique({ where: { id: req.params.id } });
+    if (!s) return res.redirect('/admin/students?error=Student not found.');
+
+    const applications = await prisma.applications.findMany({
+      where: { student_id: req.params.id },
+      include: { program: true },
+      orderBy: { created_at: 'desc' },
+    });
+
+    res.render('admin/student-view', {
+      s,
+      applications,
+      adminRole: req.adminRole,
+      message: req.query.message || null,
+      error: req.query.error || null,
+    });
+  } catch (err) {
+    console.error('Fetch student error:', err);
+    res.redirect('/admin/students?error=Failed to load student.');
+  }
+});
+
 /* ── Scholarship Programs ───────────────────────────────── */
 router.get('/programs', requireAdmin, async (req, res) => {
   try {

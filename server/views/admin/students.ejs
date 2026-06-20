@@ -39,11 +39,12 @@
               <th>Year Level</th>
               <th>Contact</th>
               <th>Date Registered</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <% if (students.length === 0) { %>
-              <tr><td colspan="7" class="alert-info" style="text-align:center;padding:24px;">No students found.</td></tr>
+              <tr><td colspan="8" class="alert-info" style="text-align:center;padding:24px;">No students found.</td></tr>
             <% } else { %>
               <% students.forEach(function(s) { %>
                 <tr>
@@ -54,6 +55,9 @@
                   <td><%= s.year_level || '-' %></td>
                   <td><%= s.contact_number || s.email || '-' %></td>
                   <td><%= new Date(s.created_at).toLocaleDateString() %></td>
+                  <td class="td-actions">
+                    <a href="/admin/students/<%= s.id %>" class="btn btn-sm btn-outline">View</a>
+                  </td>
                 </tr>
               <% }); %>
             <% } %>
