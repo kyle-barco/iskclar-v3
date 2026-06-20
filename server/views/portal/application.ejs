@@ -1,0 +1,122 @@
+<%- include('../partials/head', { title: 'Apply | Iskolarly' }) %>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/portal" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Student Portal</span></div>
+    </a>
+    <div class="navbar-user">
+      <span class="user-name"><%= student.first_name %> <%= student.last_name %></span>
+      <div class="user-avatar"><%= (student.first_name || '?')[0].toUpperCase() %></div>
+    </div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'application' }) %>
+
+  <main class="main-content">
+    <div class="page-hero" style="margin:-32px -32px 32px;border-radius:0;padding:36px 32px 32px;">
+      <div class="eyebrow">Scholarship Application</div>
+      <h1 style="font-size:1.8rem;">Apply for a Scholarship</h1>
+      <p>Select a program and submit your application.</p>
+    </div>
+
+    <% if (locals.error) { %>
+    <div class="alert alert-danger mb-24"><%= error %></div>
+    <% } %>
+    <% if (locals.message) { %>
+    <div class="alert alert-success mb-24"><%= message %></div>
+    <% } %>
+
+    <div class="grid-2 gap-24">
+      <div class="card">
+        <div class="card-header"><h3>Available Programs</h3></div>
+        <% if (programs.length > 0) { %>
+          <% var publicPrograms = programs.filter(function(p) { return p.type === 'public'; }); %>
+          <% var privatePrograms = programs.filter(function(p) { return p.type === 'private'; }); %>
+
+          <% if (publicPrograms.length > 0) { %>
+          <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:12px 16px 4px;">Public Programs</div>
+          <% publicPrograms.forEach(function(p) { %>
+          <div style="padding:16px;border:1px solid var(--border);border-radius:8px;margin:8px 12px 12px;">
+            <div class="flex justify-between items-center mb-8">
+              <h4 style="margin:0;"><%= p.name %></h4>
+              <span style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gold);">Public</span>
+            </div>
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:8px;"><%= p.description %></p>
+            <div style="font-size:.8rem;color:var(--muted);">
+              <%= new Date(p.application_start).toLocaleDateString() %> &ndash; <%= new Date(p.application_end).toLocaleDateString() %>
+              <% if (p.gpa_requirement) { %> &middot; GPA: <%= p.gpa_requirement %><% } %>
+            </div>
+          </div>
+          <% }); %>
+          <% } %>
+
+          <% if (privatePrograms.length > 0) { %>
+          <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:16px 16px 4px;">Private Programs</div>
+          <% privatePrograms.forEach(function(p) { %>
+          <div style="padding:16px;border:1px solid var(--border);border-radius:8px;margin:8px 12px 12px;background:rgba(201,168,76,.03);">
+            <div class="flex justify-between items-center mb-8">
+              <h4 style="margin:0;"><%= p.name %></h4>
+              <span style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--navy);">Private</span>
+            </div>
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:8px;"><%= p.description %></p>
+            <div style="font-size:.8rem;color:var(--muted);">
+              <%= new Date(p.application_start).toLocaleDateString() %> &ndash; <%= new Date(p.application_end).toLocaleDateString() %>
+              <% if (p.gpa_requirement) { %> &middot; GPA: <%= p.gpa_requirement %><% } %>
+            </div>
+          </div>
+          <% }); %>
+          <% } %>
+        <% } else { %>
+        <p class="text-muted">No programs currently accepting applications.</p>
+        <% } %>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Submit Application</h3></div>
+        <form method="POST" action="/portal/application">
+          <div class="form-group">
+            <label>Select Program <span class="required">*</span></label>
+            <select class="form-control" name="program_id" required>
+              <option value="">-- Choose a program --</option>
+              <% var publicPrograms = programs.filter(function(p) { return p.type === 'public'; }); %>
+              <% var privatePrograms = programs.filter(function(p) { return p.type === 'private'; }); %>
+              <% if (publicPrograms.length > 0) { %>
+              <optgroup label="Public Programs">
+                <% publicPrograms.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+                <% }); %>
+              </optgroup>
+              <% } %>
+              <% if (privatePrograms.length > 0) { %>
+              <optgroup label="Private Programs">
+                <% privatePrograms.forEach(function(p) { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+                <% }); %>
+              </optgroup>
+              <% } %>
+          </div>
+          <div class="form-group">
+            <label>Academic Year</label>
+            <input type="text" class="form-control" name="academic_year" placeholder="e.g., 2025-2026" />
+          </div>
+          <div class="form-group">
+            <label>Semester</label>
+            <select class="form-control" name="semester">
+              <option value="">Select</option>
+              <option value="1st">1st Semester</option>
+              <option value="2nd">2nd Semester</option>
+              <option value="summer">Summer</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-full mt-8">Submit Application</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

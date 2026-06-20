@@ -1,0 +1,99 @@
+<%- include('../partials/head', { title: 'Dashboard | Iskolarly' }) %>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/portal" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Student Portal</span></div>
+    </a>
+    <div class="navbar-user">
+      <span class="user-name"><%= student.first_name %> <%= student.last_name %></span>
+      <div class="user-avatar"><%= (student.first_name || '?')[0].toUpperCase() %></div>
+    </div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'dashboard' }) %>
+
+  <main class="main-content">
+    <div class="ribbon-card mb-32" style="padding:28px 28px 28px 36px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);">
+      <div class="flex justify-between items-center wrap gap-16">
+        <div>
+          <p style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:4px;">Welcome back,</p>
+          <h1 style="color:var(--white);font-size:1.5rem;margin-bottom:6px;"><%= student.first_name %> <%= student.last_name %></h1>
+          <p style="color:rgba(255,255,255,.65);font-size:.875rem;"><%= student.degree_program || '' %>, <%= student.year_level || '' %> Year &nbsp;&middot;&nbsp; Student ID: <%= student.student_id || student.id.slice(0,8) %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-4 mb-32">
+      <div class="stat-card">
+        <div class="card-icon gold" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list-icon lucide-clipboard-list"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></div>
+        <div><div class="stat-value"><%= applicationCount || 0 %></div><div class="stat-label">Applications</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon green" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-star-icon lucide-user-star"><path d="M16.051 12.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.866l-1.156-1.153a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z"/><path d="M8 15H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/></svg></div>
+        <div><div class="stat-value"><%= approvedCount || 0 %></div><div class="stat-label">Approved</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon navy" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet-icon lucide-wallet"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div>
+        <div><div class="stat-value"><%= pendingCount || 0 %></div><div class="stat-label">Pending</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="card-icon blue" style="background:rgba(94,0,6,0.3);width:44px;height:44px;font-size:1.1rem;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFFFD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-ring-icon lucide-bell-ring"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div>
+        <div><div class="stat-value">0</div><div class="stat-label">Notifications</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2 gap-24">
+      <div class="card">
+        <div class="card-header">
+          <h3>Application Status</h3>
+          <% if (latestApp) { %><span class="badge badge-<%= latestApp.status === 'approved' ? 'approved' : 'pending' %>"><%= latestApp.status %></span><% } %>
+        </div>
+        <% if (latestApp) { %>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:.8rem;color:var(--muted);">Scholarship Program</div>
+          <div style="font-weight:600;margin-top:2px;"><%= latestApp.program.name %></div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:.8rem;color:var(--muted);">Application ID</div>
+          <div style="font-weight:600;font-family:monospace;margin-top:2px;"><%= latestApp.id.slice(0,8) %></div>
+        </div>
+        <% if (latestApp.remarks) { %>
+        <div style="padding:12px;background:var(--slate);border-radius:8px;font-size:.85rem;"><%= latestApp.remarks %></div>
+        <% } %>
+        <% } else { %>
+        <p class="text-muted">No applications yet. <a href="/portal/application">Apply now &rarr;</a></p>
+        <% } %>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card">
+          <div class="card-header"><h3>Quick Actions</h3></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <a href="/portal/application" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;height:auto;text-align:center;">
+              <span style="font-size:1.4rem;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen-icon lucide-notebook-pen"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg></span>
+              <span style="font-size:.78rem;white-space:normal;">Apply for<br>Scholarship</span>
+            </a>
+            <a href="/portal/renewal" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;height:auto;text-align:center;">
+              <span style="font-size:1.4rem;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw-icon lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span>
+              <span style="font-size:.78rem;white-space:normal;">Submit<br>Renewal</span>
+            </a>
+            <a href="/portal/documents" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;height:auto;text-align:center;">
+              <span style="font-size:1.4rem;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-icon lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
+              <span style="font-size:.78rem;white-space:normal;">Upload<br>Documents</span>
+            </a>
+            <a href="/portal/profile" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;height:auto;text-align:center;">
+              <span style="font-size:1.4rem;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span>
+              <span style="font-size:.78rem;white-space:normal;">My Profile</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

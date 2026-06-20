@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model students {
+  id               String   @id @default(uuid()) @db.Uuid
+  username         String   @unique
+  last_name        String
+  first_name       String
+  middle_name      String?
+  suffix           String?
+  date_of_birth    DateTime
+  sex              String
+  civil_status     String   @default("Single")
+  nationality      String   @default("Filipino")
+  contact_number   String
+  email            String
+  addr_street      String
+  addr_barangay    String
+  addr_municipality String
+  addr_province    String
+  addr_zip         String
+  student_id       String?
+  year_level       Int?
+  college          String?
+  degree_program   String?
+  gpa              Decimal?
+  enrolled_units   Int?
+  father_name      String?
+  father_occ       String?
+  mother_name      String?
+  mother_occ       String?
+  password_hash    String
+  created_at       DateTime @default(now()) @db.Timestamptz
+
+  applications     applications[]
+
+  @@map("students")
+}
+
+model admins {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  password_hash String
+  role          String
+  is_active     Boolean  @default(true)
+  display_name  String
+
+  applications  applications[]
+
+  @@map("admins")
+}
+
+model scholarship_programs {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String
+  description      String   @default("")
+  slots            Int?
+  gpa_requirement  Decimal?
+  application_start DateTime
+  application_end   DateTime
+  academic_year    String?
+  semester         String?
+  type             String   @default("public")
+  is_active        Boolean  @default(true)
+
+  applications     applications[]
+
+  @@map("scholarship_programs")
+}
+
+model applications {
+  id            String   @id @default(uuid()) @db.Uuid
+  student_id    String   @db.Uuid
+  program_id    String   @db.Uuid
+  status        String   @default("pending")
+  remarks       String?
+  reviewed_by   String?  @db.Uuid
+  reviewed_at   DateTime? @db.Timestamptz
+  academic_year String?
+  semester      String?
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  student       students           @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  program       scholarship_programs @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  reviewer      admins?            @relation(fields: [reviewed_by], references: [id])
+  documents     documents[]
+
+  @@map("applications")
+}
+
+model documents {
+  id             String   @id @default(uuid()) @db.Uuid
+  application_id String   @db.Uuid
+  doc_type       String
+  file_path      String
+  file_name      String
+  mime_type      String
+  file_size_kb   Int
+  created_at     DateTime @default(now()) @db.Timestamptz
+
+  application    applications @relation(fields: [application_id], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}

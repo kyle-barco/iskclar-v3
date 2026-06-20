@@ -1,0 +1,133 @@
+<%- include('../partials/head', { title: 'Register | Iskolarly' }) %>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly</div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">&larr; Back to Home</a></li>
+      <li><a href="/auth/admin">Admin Portal</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div style="min-height:calc(100vh - 64px);display:grid;grid-template-columns:1fr 1fr;">
+  <div style="background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:64px 56px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:rgba(201,168,76,.1);border-radius:50%;"></div>
+    <div style="position:absolute;bottom:-60px;left:20%;width:180px;height:180px;background:rgba(201,168,76,.06);border-radius:50%;"></div>
+    <h2 style="color:var(--white);font-size:2rem;margin-bottom:14px;position:relative;z-index:1;">Start Your Journey.</h2>
+    <p style="color:rgba(255,255,255,.65);font-size:.95rem;line-height:1.7;max-width:360px;margin-bottom:40px;position:relative;z-index:1;">Create your account and take the first step toward securing your scholarship.</p>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:center;padding:48px 40px;background:var(--slate);">
+    <div style="width:100%;max-width:480px;max-height:calc(100vh - 100px);overflow-y:auto;">
+      <h1 style="font-size:1.7rem;margin-bottom:6px;">Create Account</h1>
+      <p class="text-muted mb-24">Fill in your details to get started.</p>
+
+      <% if (locals.error) { %>
+      <div class="alert alert-info mb-24" style="display:flex;">
+        <span class="alert-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#222222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert-icon lucide-triangle-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+        <div><%= error %></div>
+      </div>
+      <% } %>
+
+      <% if (locals.message) { %>
+      <div class="alert alert-success mb-24" style="display:flex;">
+        <span class="alert-icon">✅</span>
+        <div><%= message %></div>
+      </div>
+      <% } %>
+
+      <form method="POST" action="/auth/register">
+        <div class="grid-2 gap-12">
+          <div class="form-group">
+            <label>First Name <span class="required">*</span></label>
+            <input type="text" class="form-control" name="first_name" required />
+          </div>
+          <div class="form-group">
+            <label>Middle Name</label>
+            <input type="text" class="form-control" name="middle_name" />
+          </div>
+        </div>
+        <div class="grid-2 gap-12">
+          <div class="form-group">
+            <label>Last Name <span class="required">*</span></label>
+            <input type="text" class="form-control" name="last_name" required />
+          </div>
+          <div class="form-group">
+            <label>Suffix</label>
+            <input type="text" class="form-control" name="suffix" placeholder="Jr., III" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Username <span class="required">*</span></label>
+          <input type="text" class="form-control" name="username" required />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" class="form-control" name="email" />
+        </div>
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="text" class="form-control" name="contact_number" />
+        </div>
+        <div class="grid-2 gap-12">
+          <div class="form-group">
+            <label>Sex</label>
+            <select class="form-control" name="sex">
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Civil Status</label>
+            <select class="form-control" name="civil_status">
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" class="form-control" name="date_of_birth" />
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <div class="grid-2 gap-12 mb-8">
+            <input type="text" class="form-control" name="addr_street" placeholder="Street" />
+            <input type="text" class="form-control" name="addr_barangay" placeholder="Barangay" />
+          </div>
+          <div class="grid-2 gap-12 mb-8">
+            <input type="text" class="form-control" name="addr_municipality" placeholder="Municipality" />
+            <input type="text" class="form-control" name="addr_province" placeholder="Province" />
+          </div>
+          <input type="text" class="form-control" name="addr_zip" placeholder="ZIP Code" />
+        </div>
+        <div class="form-group">
+          <label>Password <span class="required">*</span></label>
+          <input type="password" class="form-control" name="password" required minlength="8" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-full mt-8">Create Account</button>
+      </form>
+
+      <div style="display:flex;align-items:center;gap:12px;margin:24px 0;">
+        <hr style="flex:1;border:none;border-top:1px solid var(--border);" />
+        <span style="font-size:.8rem;color:var(--muted);">or</span>
+        <hr style="flex:1;border:none;border-top:1px solid var(--border);" />
+      </div>
+
+      <div class="text-center">
+        <p class="text-muted text-sm mb-8">Already have an account?</p>
+        <a href="/auth/login" class="btn btn-outline w-full">Log In</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

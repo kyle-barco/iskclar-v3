@@ -1,0 +1,49 @@
+<%- include('../partials/head', { title: 'Applications | Iskolarly' }) %>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin/students">Students</a></li>
+      <li><a href="/auth/logout">Log Out</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <main class="main-content" style="margin-left:0;padding:32px;">
+    <h1 style="font-size:1.8rem;margin-bottom:24px;">Applications</h1>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Program</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>
+            <% applications.forEach(function(app) { %>
+            <tr>
+              <td><%= app.student.first_name %> <%= app.student.last_name %></td>
+              <td><%= app.program.name %></td>
+              <td><span class="badge badge-<%= app.status === 'approved' ? 'approved' : app.status === 'rejected' ? 'rejected' : 'pending' %>"><%= app.status %></span></td>
+              <td><%= new Date(app.created_at).toLocaleDateString() %></td>
+              <td>
+                <form method="POST" action="/admin/applications/<%= app.id %>" style="display:flex;gap:4px;">
+                  <select name="status" class="form-control" style="width:auto;font-size:.8rem;padding:4px 8px;">
+                    <option value="under_review" <%= app.status === 'under_review' ? 'selected' : '' %>>Review</option>
+                    <option value="approved" <%= app.status === 'approved' ? 'selected' : '' %>>Approve</option>
+                    <option value="rejected" <%= app.status === 'rejected' ? 'selected' : '' %>>Reject</option>
+                    <option value="waitlisted" <%= app.status === 'waitlisted' ? 'selected' : '' %>>Waitlist</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                </form>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

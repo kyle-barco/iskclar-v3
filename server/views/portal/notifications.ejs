@@ -1,0 +1,33 @@
+<%- include('../partials/head', { title: 'Notifications | Iskolarly' }) %>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/portal" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div class="brand-text">Iskolarly<span class="sub">Student Portal</span></div>
+    </a>
+    <div class="navbar-user">
+      <span class="user-name"><%= student.first_name %> <%= student.last_name %></span>
+      <div class="user-avatar"><%= (student.first_name || '?')[0].toUpperCase() %></div>
+    </div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <%- include('../partials/student-sidebar', { active: 'notifications' }) %>
+
+  <main class="main-content">
+    <div class="page-hero" style="margin:-32px -32px 32px;border-radius:0;padding:36px 32px 32px;">
+      <div class="eyebrow">Updates</div>
+      <h1 style="font-size:1.8rem;">Notifications</h1>
+      <p>Stay informed about your application status.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>All Notifications</h3></div>
+      <p class="text-muted">No notifications yet.</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>
