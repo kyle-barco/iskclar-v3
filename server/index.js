@@ -12,6 +12,8 @@ const applicationRoutes = require('./routes/application');
 const documentRoutes = require('./routes/documents');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
+const healthRoutes = require('./routes/health');
+const { startKeepAlive } = require('../keep-alive');
 
 const app = express();
 const prisma = createPrisma();
@@ -47,9 +49,16 @@ app.use('/portal', applicationRoutes);
 app.use('/documents', documentRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api', healthRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Iskolarly running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Iskolarly running on port ${PORT}`);
+
+  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_KEEPALIVE === 'true') {
+    startKeepAlive(PORT);
+  }
+});
 
 process.on('SIGINT', async () => { await prisma.$disconnect(); process.exit(0); });
 process.on('SIGTERM', async () => { await prisma.$disconnect(); process.exit(0); });
