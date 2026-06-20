@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "server/index.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
     "seed": "node seed.js"
@@ -10,6 +11,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "prisma": "^7.8.0",
     "@supabase/supabase-js": "^2.45.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.6",
@@ -25,7 +27,6 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "prisma": "^7.8.0"
+    "nodemon": "^3.1.0"
   }
 }
