@@ -99,6 +99,32 @@ router.post('/profile', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/profile/academic', requireAuth, async (req, res) => {
+  try {
+    const { student_id, college, degree_program, year_level } = req.body;
+    await prisma.students.update({
+      where: { id: req.user.id },
+      data: {
+        student_id: student_id || null,
+        college: college || null,
+        degree_program: degree_program || null,
+        year_level: year_level ? parseInt(year_level, 10) : null,
+      },
+    });
+
+    const student = await prisma.students.findUnique({ where: { id: req.user.id } });
+    res.render('portal/profile', {
+      student,
+      message: 'Academic information updated successfully!',
+      error: null,
+      suffix: (n) => { if (n === 1) return 'st'; if (n === 2) return 'nd'; if (n === 3) return 'rd'; return 'th'; },
+    });
+  } catch (err) {
+    console.error('Update academic info error:', err);
+    res.redirect('/portal/profile');
+  }
+});
+
 router.post('/profile/password', requireAuth, async (req, res) => {
   const { current_password, new_password } = req.body;
   if (!current_password || !new_password || new_password.length < 8) {

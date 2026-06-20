@@ -116,8 +116,7 @@ img { max-width: 100%; display: block; }
   align-items: center;
   justify-content: space-between;
   height: 64px;
-  max-width: 1180px;
-  margin: 0 auto;
+  width: 100%;
   padding: 0 24px;
 }
 .navbar-brand {
