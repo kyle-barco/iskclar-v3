@@ -32,7 +32,7 @@ const registerSchema = Joi.object({
                      .required(),
 
   // Name
-  last_name:       Joi.string().pattern(/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s'\-]{0,59}$/).required().messages({'string.pattern.base': 'Last name must start with a letter and contain only letters, spaces, apostrophes, or hyphens'}),
+  last_name:       Joi.string().pattern(/^[A-Za-zÀ-ÿ\s'\-]{1,60}$/).required(),
   first_name:      Joi.string().pattern(/^[A-Za-zÀ-ÿ\s'\-]{1,60}$/).required(),
   middle_name:     Joi.string().pattern(/^[A-Za-zÀ-ÿ\s'\-]{1,60}$/).optional().allow(''),
   suffix:          Joi.string().valid('Jr.', 'Sr.', 'II', 'III', 'IV', 'V').optional().allow(''),
