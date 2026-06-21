@@ -55,7 +55,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Iskolarly running on port ${PORT}`);
 
-  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_KEEPALIVE === 'true') {
+  if (process.env.RENDER === 'true' || process.env.NODE_ENV === 'production' || process.env.ENABLE_KEEPALIVE === 'true') {
     startKeepAlive(PORT);
   }
 });
