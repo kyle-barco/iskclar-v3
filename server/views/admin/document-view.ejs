@@ -1,0 +1,28 @@
+<%- include('../partials/head', { title: doc.file_name + ' | Iskolarly' }) %>
+<%- include('partials/navbar', { adminRole }) %>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'applications', adminRole }) %>
+  <main class="main-content">
+    <div class="flex justify-between items-center mb-24">
+      <div>
+        <a href="<%= backUrl %>" class="btn btn-outline mb-16">&larr; Back</a>
+        <h1 class="page-title" style="font-size:1.4rem;"><%= doc.file_name %></h1>
+        <p class="text-muted text-sm">
+          <%= doc.doc_type.replace(/_/g, ' ').replace(/\b\w/g, function(c){return c.toUpperCase();}) %>
+          &middot; <%= doc.file_size_kb %> KB
+          &middot; Uploaded <%= new Date(doc.created_at).toLocaleDateString() %>
+        </p>
+      </div>
+      <a href="/admin/documents/<%= doc.id %>/download" class="btn btn-primary">Download</a>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <% if (doc.mime_type.startsWith('image/')) { %>
+        <img src="/admin/documents/<%= doc.id %>/download" style="width:100%;max-height:80vh;object-fit:contain;display:block;" />
+      <% } else { %>
+        <iframe src="/admin/documents/<%= doc.id %>/download" style="width:100%;height:80vh;border:none;"></iframe>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

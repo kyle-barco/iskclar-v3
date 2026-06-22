@@ -14,6 +14,8 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const healthRoutes = require('./routes/health');
 const { startKeepAlive } = require('../keep-alive');
+const { trackActivity, checkInactivity } = require('./middleware/inactivity');
+let foo = 1;
 
 const app = express();
 const prisma = createPrisma();
@@ -38,10 +40,13 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000', cr
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(trackActivity);
 
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => res.render('index'));
+app.get('/privacy', (req, res) => res.render('privacy'));
+app.get('/terms', (req, res) => res.render('terms'));
 
 app.use('/auth', authRoutes);
 app.use('/portal', profileRoutes);

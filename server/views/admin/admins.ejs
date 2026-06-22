@@ -1,24 +1,15 @@
 <%- include('../partials/head', { title: 'Admin Users | Iskolarly' }) %>
-<nav class="navbar">
-  <div class="navbar-inner">
-    <a href="/admin" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="/admin">Dashboard</a></li>
-      <li><a href="/admin/applications">Applications</a></li>
-      <li><a href="/admin/students">Students</a></li>
-      <li><a href="/auth/logout">Log Out</a></li>
-    </ul>
-  </div>
-</nav>
+<%- include('partials/navbar', { adminRole }) %>
 <div class="dashboard-layout">
   <%- include('partials/sidebar', { currentPage: 'admins', adminRole }) %>
   <main class="main-content">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <h1 style="font-size:1.8rem;margin:0;">Admin Users</h1>
-      <button class="btn btn-primary" onclick="document.getElementById('addAdminModal').style.display='block'">Add Admin</button>
+    <div class="panel" style="margin-bottom:14px;">
+      <div class="panel-top">
+        <div>
+          <div class="panel-title">User Accounts</div>
+          <p style="opacity:.7;margin-top:4px;font-size:14px;">Manage administrators and their permissions.</p>
+        </div>
+      </div>
     </div>
 
     <% if (message) { %>
@@ -28,83 +19,75 @@
       <div class="alert alert-danger"><%= error %></div>
     <% } %>
 
-    <div id="addAdminModal" class="card mb-32" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h3 style="margin:0;">Add New Admin</h3>
-        <button class="btn btn-sm" onclick="document.getElementById('addAdminModal').style.display='none'">Close</button>
+    <div class="accounts-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>ADMINISTRATORS</h2>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('addAdminModal').style.display='block'">+ Add Admin</button>
       </div>
-      <form method="POST" action="/admin/admins">
-        <div class="grid-2 gap-16">
-          <div class="form-group">
-            <label class="form-label">Email *</label>
-            <input type="email" name="email" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Display Name *</label>
-            <input type="text" name="display_name" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password *</label>
-            <input type="password" name="password" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Role</label>
-            <select name="role" class="form-control">
-              <option value="admin">Admin</option>
-              <option value="superadmin">Superadmin</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-16">
-          <button type="submit" class="btn btn-primary">Create Admin</button>
-        </div>
-      </form>
-    </div>
+      <hr class="accounts-sep">
 
-    <% if (admins.length === 0) { %>
-      <div class="alert alert-info">No admin users found.</div>
-    <% } else { %>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Display Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% admins.forEach(function(a) { %>
-              <tr>
-                <td><%= a.display_name %></td>
-                <td><%= a.email %></td>
-                <td>
-                  <span class="badge <%= a.role === 'superadmin' ? 'badge-gold' : 'badge-active' %>"><%= a.role %></span>
-                </td>
-                <td>
-                  <span class="badge <%= a.is_active ? 'badge-active' : 'badge-inactive' %>"><%= a.is_active ? 'Active' : 'Inactive' %></span>
-                </td>
-                <td>
-                  <form method="POST" action="/admin/admins/<%= a.id %>/toggle-active" style="display:inline;">
-                    <button type="submit" class="btn btn-sm <%= a.is_active ? 'btn-warning' : 'btn-success' %>"><%= a.is_active ? 'Deactivate' : 'Activate' %></button>
-                  </form>
-                  <form method="POST" action="/admin/admins/<%= a.id %>/delete" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this admin?');">
-                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                  </form>
-                  <% if (a.role === 'superadmin' && admins.filter(function(x) { return x.role === 'superadmin' && x.is_active; }).length <= 1) { %>
-                    <small style="display:block;color:var(--text-muted);margin-top:4px;">Cannot delete last active superadmin</small>
-                  <% } %>
-                </td>
-              </tr>
-              <% }); %>
-            </tbody>
-          </table>
+      <div id="addAdminModal" style="display:none;background:#f8f8f8;border-radius:12px;padding:18px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin:0;">Add New Admin</h3>
+          <button class="btn btn-sm btn-outline" onclick="document.getElementById('addAdminModal').style.display='none'">Close</button>
         </div>
+        <form method="POST" action="/admin/admins" data-unsaved-warning>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Display Name *</label>
+              <input type="text" name="display_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <select name="role" class="form-control">
+                <option value="admin">Admin</option>
+                <option value="superadmin">Superadmin</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button type="submit" class="btn btn-primary">Create Admin</button>
+          </div>
+        </form>
       </div>
-    <% } %>
+
+      <% if (!admins || admins.filter(function(a) { return a.role !== 'superadmin'; }).length === 0) { %>
+        <p class="text-muted" style="text-align:center;padding:24px;">No admin users found.</p>
+      <% } else { %>
+        <% var colors = ['#9b59b6','#f08245','#ff4fa0','#5dade2','#e74c3c','#2ecc71','#3498db']; %>
+        <% var ci = 0; %>
+        <% admins.filter(function(a) { return a.role !== 'superadmin'; }).forEach(function(a) { %>
+          <div class="user-row">
+            <div class="user-left">
+              <div class="user-badge-sm" style="background:<%= colors[ci++ % colors.length] %>"><%= a.display_name.charAt(0).toUpperCase() %></div>
+              <strong><%= a.display_name %></strong>
+            </div>
+            <div class="user-btns">
+              <form method="POST" action="/admin/admins/<%= a.id %>/toggle-active" style="display:inline;">
+                <button type="submit" class="user-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z"/><path d="M8 12h8"/></svg>
+                  <%= a.is_active ? 'SUSPEND' : 'ACTIVATE' %>
+                </button>
+              </form>
+              <form method="POST" action="/admin/admins/<%= a.id %>/delete" style="display:inline;" data-confirm-delete="Delete this admin? This action cannot be undone.">
+                <button type="submit" class="user-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  REMOVE
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
   </main>
 </div>
 </body>
