@@ -7,6 +7,7 @@ const Joi = require('joi');
 const loginSchema = Joi.object({
   username: Joi.string().trim().required(),
   password: Joi.string().required(),
+  rememberMe: Joi.any(),
 });
 
 router.get('/login', (req, res) => {
@@ -26,8 +27,14 @@ router.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, student.password_hash);
     if (!valid) return res.render('auth/login', { error: 'Invalid username or password.', message: null });
 
-    const token = signToken({ id: student.id, email: student.email });
-    res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const remember = req.body.rememberMe === 'true';
+    const token = signToken(
+      { id: student.id, email: student.email },
+      remember ? '7d' : '1h'
+    );
+    const cookieOpts = { httpOnly: true };
+    if (remember) cookieOpts.maxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('token', token, cookieOpts);
     res.redirect('/portal');
   } catch (err) {
     console.error('Login error:', err);
@@ -85,7 +92,9 @@ router.post('/register', async (req, res) => {
         date_of_birth: body.date_of_birth ? new Date(body.date_of_birth) : new Date('2000-01-01'),
         sex: body.sex || 'Prefer not to say',
         civil_status: body.civil_status || 'Single',
-        contact_number: body.contact_number || '',
+        contact_number: body.contact_number
+          ? (body.contact_number.startsWith('+63') ? body.contact_number : `+63${body.contact_number.replace(/^0?/, '')}`)
+          : '',
         email: body.email || '',
         addr_street: body.addr_street || '',
         addr_barangay: body.addr_barangay || '',

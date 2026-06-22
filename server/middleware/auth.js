@@ -5,11 +5,11 @@ const prisma = createPrisma({
   log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 });
 
-function signToken(user) {
+function signToken(user, expiresIn) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role || 'student' },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: expiresIn || '7d' }
   );
 }
 

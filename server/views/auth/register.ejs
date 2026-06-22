@@ -598,7 +598,7 @@
           validate: function (val) {
             if (!val.trim()) return '';
             const cleaned = val.trim().replace(/[\s\-\(\)]/g, '');
-            if (!/^09\d{9}$/.test(cleaned) && !/^\+639\d{9}$/.test(cleaned)) return 'Enter a valid PH mobile number (e.g. 09171234567).';
+            if (!/^\+639\d{9}$/.test(cleaned)) return 'Enter a valid PH mobile number (e.g. +639xxxxxxxxx).';
             return '';
           }
         },

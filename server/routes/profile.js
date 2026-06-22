@@ -81,7 +81,9 @@ router.post('/profile', requireAuth, async (req, res) => {
         suffix: suffix || student.suffix,
         date_of_birth: date_of_birth ? new Date(date_of_birth) : student.date_of_birth,
         sex: sex || student.sex,
-        contact_number: contact_number || student.contact_number,
+        contact_number: contact_number
+          ? (contact_number.startsWith('+63') ? contact_number : `+63${contact_number.replace(/^0?/, '')}`)
+          : student.contact_number,
         email: email || student.email,
       },
     });
