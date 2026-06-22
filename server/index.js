@@ -15,6 +15,7 @@ const publicRoutes = require('./routes/public');
 const healthRoutes = require('./routes/health');
 const { startKeepAlive } = require('../keep-alive');
 const { trackActivity, checkInactivity } = require('./middleware/inactivity');
+let foo = 1;
 
 const app = express();
 const prisma = createPrisma();
