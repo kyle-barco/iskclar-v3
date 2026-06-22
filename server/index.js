@@ -15,10 +15,23 @@ const publicRoutes = require('./routes/public');
 const healthRoutes = require('./routes/health');
 const { startKeepAlive } = require('../keep-alive');
 const { trackActivity, checkInactivity } = require('./middleware/inactivity');
-let foo = 1;
 
 const app = express();
 const prisma = createPrisma();
+
+async function autoSeed() {
+  try {
+    const count = await prisma.admins.count();
+    if (count === 0) {
+      console.log('No admins found, running initial seed...');
+      const { seed } = require('../seed');
+      await seed();
+    }
+  } catch (err) {
+    console.error('Auto-seed check failed:', err.message);
+  }
+}
+autoSeed();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));

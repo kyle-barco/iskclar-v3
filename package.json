@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server/index.js",
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && npx prisma migrate deploy",
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
     "seed": "node seed.js"

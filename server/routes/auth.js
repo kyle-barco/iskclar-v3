@@ -37,7 +37,8 @@ router.post('/login', async (req, res) => {
       { id: student.id, email: student.email },
       remember ? '7d' : '1h'
     );
-    const cookieOpts = { httpOnly: true };
+    const cookieOpts = { httpOnly: true, sameSite: 'lax' };
+    if (process.env.NODE_ENV === 'production') cookieOpts.secure = true;
     if (remember) cookieOpts.maxAge = 7 * 24 * 60 * 60 * 1000;
     res.cookie('token', token, cookieOpts);
     res.redirect('/portal');
@@ -68,7 +69,7 @@ router.post('/admin', async (req, res) => {
     }
 
     const token = signToken({ id: admin.id, email: admin.email, role: admin.role });
-    res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
     logActivity(admin.id, 'time_in', 'session', null, { display_name: admin.display_name });
     res.redirect('/admin');
   } catch (err) {
