@@ -441,8 +441,13 @@
 
                     <div class="form-group">
                       <label>Password <span class="required">*</span></label>
+                      <div style="position:relative;">
                       <input type="password" class="form-control" name="password" id="password" required
-                        placeholder="Create a strong password" />
+                        placeholder="Create a strong password" style="padding-right:44px;" />
+                      <button type="button" onclick="togglePW('password','pwToggleBtn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:4px;" aria-label="Toggle password visibility">
+                        <span id="pwToggleBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                      </button>
+                      </div>
                       <div class="pw-strength-bar">
                         <div class="pw-strength-fill" id="pwStrengthFill"></div>
                       </div>
@@ -479,8 +484,13 @@
 
                     <div class="form-group">
                       <label>Confirm Password <span class="required">*</span></label>
+                      <div style="position:relative;">
                       <input type="password" class="form-control" name="confirm_password" id="confirm_password"
-                        required placeholder="Re-enter your password" />
+                        required placeholder="Re-enter your password" style="padding-right:44px;" />
+                      <button type="button" onclick="togglePW('confirm_password','confirmPwToggleBtn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:4px;" aria-label="Toggle password visibility">
+                        <span id="confirmPwToggleBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+                      </button>
+                      </div>
                       <div class="field-error" id="confirmPwError">Passwords do not match.</div>
                     </div>
 
@@ -682,13 +692,17 @@
           validate: function (val) {
             if (!val.trim()) return 'First name is required.';
             if (val.trim().length < 2) return 'First name must be at least 2 characters.';
-            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'First name can only contain letters.';
+            if (!/^[A-Za-z]/.test(val.trim())) return 'First name must start with a letter.';
+            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'First name can only contain letters, hyphens, and apostrophes.';
             return '';
           }
         },
         middle_name: {
           validate: function (val) {
-            if (val.trim() && !/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Middle name can only contain letters.';
+            if (val.trim()) {
+              if (!/^[A-Za-z]/.test(val.trim())) return 'Middle name must start with a letter.';
+              if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Middle name can only contain letters, hyphens, and apostrophes.';
+            }
             return '';
           }
         },
@@ -696,11 +710,17 @@
           validate: function (val) {
             if (!val.trim()) return 'Last name is required.';
             if (val.trim().length < 2) return 'Last name must be at least 2 characters.';
-            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Last name can only contain letters.';
+            if (!/^[A-Za-z]/.test(val.trim())) return 'Last name must start with a letter.';
+            if (!/^[A-Za-z\s\-']+$/.test(val.trim())) return 'Last name can only contain letters, hyphens, and apostrophes.';
             return '';
           }
         },
-        suffix: { validate: function () { return ''; } },
+        suffix: {
+          validate: function (val) {
+            if (val.trim() && !/^[A-Za-z.]/.test(val.trim())) return 'Suffix must start with a letter or period.';
+            return '';
+          }
+        },
         date_of_birth: {
           validate: function (val) {
             if (!val) return 'Date of birth is required.';
@@ -765,6 +785,12 @@
             if (!/[A-Z]/.test(val)) return 'Password needs an uppercase letter.';
             if (!/[a-z]/.test(val)) return 'Password needs a lowercase letter.';
             if (!/[^A-Za-z0-9]/.test(val)) return 'Password needs a special character.';
+            var lowerVal = val.toLowerCase();
+            var fn = (document.getElementById('first_name').value || '').toLowerCase();
+            var ln = (document.getElementById('last_name').value || '').toLowerCase();
+            var un = (document.getElementById('username').value || '').toLowerCase();
+            var em = (document.getElementById('email').value || '').toLowerCase();
+            if ((fn && lowerVal.includes(fn)) || (ln && lowerVal.includes(ln)) || (un && lowerVal.includes(un)) || (em && lowerVal.includes(em))) return 'Password cannot contain your name, username, or email.';
             return '';
           }
         },
@@ -1063,6 +1089,16 @@
       }
 
     })();
+
+    function togglePW(inputId, iconId) {
+      var inp = document.getElementById(inputId);
+      var icon = document.getElementById(iconId);
+      var isPW = inp.type === 'password';
+      inp.type = isPW ? 'text' : 'password';
+      icon.innerHTML = isPW
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    }
   </script>
   </body>
 

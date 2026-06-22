@@ -2807,6 +2807,7 @@ tbody td {
   min-height: calc(100vh - 64px);
   padding: 40px 20px;
   box-sizing: border-box;
+  background: linear-gradient(135deg, #2a0507 0%, #520003 100%);
 }
 
 @media (max-width: 480px) {

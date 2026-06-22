@@ -926,4 +926,60 @@ router.get('/documents/:id/download', requireAdmin, async (req, res) => {
   }
 });
 
+/* ── Trash: Application restore / permanent-delete ───────── */
+router.post('/applications/:id/restore', requireAdmin, requireSuperadmin, async (req, res) => {
+  try {
+    await prisma.applications.update({
+      where: { id: req.params.id },
+      data: { status: 'pending', reviewed_by: null, reviewed_at: null },
+    });
+    await logActivity(req.user.id, 'restore_application', 'application', req.params.id, {});
+    res.redirect('/admin/trash?message=Application restored successfully.');
+  } catch (err) {
+    console.error('Restore application error:', err);
+    res.redirect('/admin/trash?error=Failed to restore application.');
+  }
+});
+
+router.post('/applications/:id/permanent-delete', requireAdmin, requireSuperadmin, async (req, res) => {
+  try {
+    await prisma.documents.deleteMany({ where: { application_id: req.params.id } });
+    await prisma.applications.delete({ where: { id: req.params.id } });
+    await logActivity(req.user.id, 'permanent_delete_application', 'application', req.params.id, {});
+    res.redirect('/admin/trash?message=Application permanently deleted.');
+  } catch (err) {
+    console.error('Permanent delete application error:', err);
+    res.redirect('/admin/trash?error=Failed to permanently delete application.');
+  }
+});
+
+/* ── Trash: Admin restore / permanent-delete ─────────────── */
+router.post('/admins/:id/restore', requireAdmin, requireSuperadmin, async (req, res) => {
+  try {
+    await prisma.admins.update({
+      where: { id: req.params.id },
+      data: { is_active: true },
+    });
+    await logActivity(req.user.id, 'restore_admin', 'admin', req.params.id, {});
+    res.redirect('/admin/trash?message=Admin account restored successfully.');
+  } catch (err) {
+    console.error('Restore admin error:', err);
+    res.redirect('/admin/trash?error=Failed to restore admin account.');
+  }
+});
+
+router.post('/admins/:id/permanent-delete', requireAdmin, requireSuperadmin, async (req, res) => {
+  try {
+    const admin = await prisma.admins.findUnique({ where: { id: req.params.id } });
+    if (!admin) return res.redirect('/admin/trash?error=Admin not found.');
+    if (admin.id === req.user.id) return res.redirect('/admin/trash?error=You cannot delete your own account.');
+    await prisma.admins.delete({ where: { id: req.params.id } });
+    await logActivity(req.user.id, 'permanent_delete_admin', 'admin', req.params.id, {});
+    res.redirect('/admin/trash?message=Admin permanently deleted.');
+  } catch (err) {
+    console.error('Permanent delete admin error:', err);
+    res.redirect('/admin/trash?error=Failed to permanently delete admin.');
+  }
+});
+
 module.exports = router;

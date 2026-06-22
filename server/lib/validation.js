@@ -36,6 +36,7 @@ function validateName(name, fieldLabel) {
   const trimmed = name.trim();
   if (trimmed.length < 2) return fieldLabel + ' must be at least 2 characters.';
   if (trimmed.length > 60) return fieldLabel + ' must be at most 60 characters.';
+  if (!/^[A-Za-zÀ-ÿ]/.test(trimmed)) return fieldLabel + ' must start with a letter.';
   if (!NAME_REGEX.test(trimmed)) return fieldLabel + ' can only contain letters, hyphens, and apostrophes.';
   if (containsProfanity(trimmed)) return fieldLabel + ' contains inappropriate language.';
   return '';

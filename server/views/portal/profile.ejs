@@ -182,13 +182,16 @@
   });
 
   /* ── Name validation ────────────────────────────────── */
-  var nameRegex = /^[A-Za-zÀ-ÿ\s'\-]+$/;
+  var nameRegex = /^[A-Za-zÀ-ÿ'\-]+(?:[A-Za-zÀ-ÿ\s'\-]*)$/;
+  var firstCharRegex = /^[A-Za-zÀ-ÿ]/;
   function validateNameField(el, label) {
     var val = el.value.trim();
+    var rawVal = el.value;
     var errEl = el.closest('.form-group').querySelector('.field-error');
     el.classList.remove('invalid');
     if (errEl) errEl.style.display = 'none';
     if (!val) { if (el.required) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' is required.'; errEl.style.display = 'block'; } return false; } return true; }
+    if (rawVal.length > 0 && !firstCharRegex.test(rawVal[0])) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' must start with a letter.'; errEl.style.display = 'block'; } return false; }
     if (val.length < 2) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' must be at least 2 characters.'; errEl.style.display = 'block'; } return false; }
     if (!nameRegex.test(val)) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' can only contain letters, hyphens, and apostrophes.'; errEl.style.display = 'block'; } return false; }
     return true;
