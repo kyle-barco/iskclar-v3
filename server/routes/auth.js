@@ -1,9 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const router = express.Router();
 const { prisma, signToken } = require('../middleware/auth');
 const { logActivity } = require('../middleware/activity');
+const { sendResetEmail } = require('../lib/email');
 const Joi = require('joi');
 const { validateName, validatePassword, sanitizeText, containsProfanity, normalizeEmail, validatePhone } = require('../lib/validation');
 
@@ -75,15 +77,156 @@ router.post('/admin', async (req, res) => {
   }
 });
 
+router.get('/forgot-password', (req, res) => {
+  res.render('auth/forgot-password', { error: null, success: null, email: null, admin: false });
+});
+
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.render('auth/forgot-password', { error: 'Please enter your email.', success: null, email: null, admin: false });
+
+  try {
+    const student = await prisma.students.findFirst({ where: { email, is_deleted: false } });
+    if (!student) {
+      return res.render('auth/forgot-password', { error: 'No account found with that email.', success: null, email, admin: false });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000);
+
+    await prisma.students.update({
+      where: { id: student.id },
+      data: { reset_token: token, reset_token_expires: expires },
+    });
+
+    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
+    const displayName = `${student.first_name} ${student.last_name}`;
+    await sendResetEmail(email, resetUrl, displayName);
+
+    res.render('auth/forgot-password', { error: null, success: 'Reset link sent! Check your email.', email: null, admin: false });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.render('auth/forgot-password', { error: 'Failed to send reset email. Please try again.', success: null, email, admin: false });
+  }
+});
+
+router.get('/admin/forgot-password', (req, res) => {
+  res.render('auth/forgot-password', { error: null, success: null, email: null, admin: true });
+});
+
+router.post('/admin/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.render('auth/forgot-password', { error: 'Please enter your email.', success: null, email: null, admin: true });
+
+  try {
+    const admin = await prisma.admins.findUnique({ where: { email } });
+    if (!admin) {
+      return res.render('auth/forgot-password', { error: 'No admin account found with that email.', success: null, email, admin: true });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000);
+
+    await prisma.admins.update({
+      where: { id: admin.id },
+      data: { reset_token: token, reset_token_expires: expires },
+    });
+
+    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
+    await sendResetEmail(email, resetUrl, admin.display_name);
+
+    res.render('auth/forgot-password', { error: null, success: 'Reset link sent! Check your email.', email: null, admin: true });
+  } catch (err) {
+    console.error('Admin forgot password error:', err);
+    res.render('auth/forgot-password', { error: 'Failed to send reset email. Please try again.', success: null, email, admin: true });
+  }
+});
+
+router.get('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    let user = await prisma.students.findFirst({
+      where: { reset_token: token, reset_token_expires: { gt: new Date() }, is_deleted: false },
+    });
+    if (!user) {
+      user = await prisma.admins.findFirst({
+        where: { reset_token: token, reset_token_expires: { gt: new Date() } },
+      });
+    }
+    if (!user) {
+      return res.render('auth/reset-password', { error: 'Invalid or expired reset link.', success: null, token: null });
+    }
+
+    res.render('auth/reset-password', { error: null, success: null, token });
+  } catch (err) {
+    console.error('Reset password load error:', err);
+    res.render('auth/reset-password', { error: 'Something went wrong.', success: null, token: null });
+  }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  const { password, confirmPassword } = req.body;
+
+  if (!password || !confirmPassword) {
+    return res.render('auth/reset-password', { error: 'All fields are required.', success: null, token });
+  }
+  if (password.length < 8) {
+    return res.render('auth/reset-password', { error: 'Password must be at least 8 characters.', success: null, token });
+  }
+  if (password !== confirmPassword) {
+    return res.render('auth/reset-password', { error: 'Passwords do not match.', success: null, token });
+  }
+
+  try {
+    let user = await prisma.students.findFirst({
+      where: { reset_token: token, reset_token_expires: { gt: new Date() }, is_deleted: false },
+    });
+    let model = 'students';
+    if (!user) {
+      user = await prisma.admins.findFirst({
+        where: { reset_token: token, reset_token_expires: { gt: new Date() } },
+      });
+      model = 'admins';
+    }
+    if (!user) {
+      return res.render('auth/reset-password', { error: 'Invalid or expired reset link.', success: null, token: null });
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+
+    if (model === 'students') {
+      await prisma.students.update({
+        where: { id: user.id },
+        data: { password_hash, reset_token: null, reset_token_expires: null },
+      });
+    } else {
+      await prisma.admins.update({
+        where: { id: user.id },
+        data: { password_hash, reset_token: null, reset_token_expires: null },
+      });
+    }
+
+    res.render('auth/reset-password', { error: null, success: 'Password reset successfully! You can now sign in with your new password.', token: null });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.render('auth/reset-password', { error: 'Failed to reset password. Please try again.', success: null, token });
+  }
+});
+
 router.get('/register', (req, res) => {
   const idempotencyToken = require('crypto').randomUUID();
   res.render('auth/register', { error: null, message: null, idempotencyToken });
 });
 
 router.post('/register', async (req, res) => {
+  const idempotencyToken = require('crypto').randomUUID();
+  const renderErr = (error) => res.render('auth/register', { error, message: null, idempotencyToken });
+
   const body = req.body;
   if (!body.username || !body.password || !body.last_name || !body.first_name) {
-    return res.render('auth/register', { error: 'Required fields missing.', message: null });
+    return renderErr('Required fields missing.');
   }
 
   try {
@@ -94,30 +237,30 @@ router.post('/register', async (req, res) => {
     const email = normalizeEmail(body.email);
 
     const nameErr = validateName(first_name) || validateName(last_name);
-    if (nameErr) return res.render('auth/register', { error: nameErr, message: null });
+    if (nameErr) return renderErr(nameErr);
 
     if (containsProfanity(first_name) || containsProfanity(last_name) || (middle_name && containsProfanity(middle_name))) {
-      return res.render('auth/register', { error: 'Name contains inappropriate language.', message: null });
+      return renderErr('Name contains inappropriate language.');
     }
 
-    const pwErr = validatePassword(body.password, { first_name, last_name, username, email });
-    if (pwErr) return res.render('auth/register', { error: pwErr, message: null });
+    const pwErr = validatePassword(body.password, username, email, first_name, last_name);
+    if (pwErr) return renderErr(pwErr);
 
     const existingUser = await prisma.students.findUnique({ where: { username } });
-    if (existingUser) return res.render('auth/register', { error: 'Username already taken.', message: null });
+    if (existingUser) return renderErr('Username already taken.');
 
     if (email) {
       const existingEmail = await prisma.students.findFirst({ where: { email } });
-      if (existingEmail) return res.render('auth/register', { error: 'Email already registered. <a href="/auth/login">Sign in here</a>.', message: null });
+      if (existingEmail) return renderErr('Email already registered. <a href="/auth/login">Sign in here</a>.');
     }
 
     if (body.contact_number) {
       var phoneVal = body.contact_number.startsWith('+63') ? body.contact_number : `+63${body.contact_number.replace(/^0?/, '')}`;
       const phoneErr = validatePhone(phoneVal);
-      if (phoneErr) return res.render('auth/register', { error: phoneErr, message: null });
+      if (phoneErr) return renderErr(phoneErr);
 
       const existingPhone = await prisma.students.findFirst({ where: { contact_number: phoneVal } });
-      if (existingPhone) return res.render('auth/register', { error: 'Phone number already registered. <a href="/auth/login">Sign in here</a>.', message: null });
+      if (existingPhone) return renderErr('Phone number already registered. <a href="/auth/login">Sign in here</a>.');
     }
 
     const password_hash = await bcrypt.hash(body.password, 10);
@@ -148,7 +291,7 @@ router.post('/register', async (req, res) => {
     res.render('auth/login', { error: null, message: 'Account created successfully! Please log in.' });
   } catch (err) {
     console.error('Register error:', err);
-    res.render('auth/register', { error: 'Registration failed.', message: null });
+    renderErr('Registration failed.');
   }
 });
 
