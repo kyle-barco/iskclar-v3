@@ -1,0 +1,194 @@
+<%- include('../partials/head', { title: 'Notifications | Iskolarly' }) %>
+<nav class="navbar navbar-admin">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
+    </a>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'notifications', adminRole }) %>
+  <main class="main-content">
+    <div class="top-tabs" style="margin-bottom:24px;">
+      <div class="title">NOTIFICATIONS
+        <% if (pendingCount > 0 && adminRole === 'superadmin') { %>
+          <span style="background:#9B6B0B;padding:4px 10px;border-radius:10px;font-size:12px;margin-left:8px;"><%= pendingCount %> pending</span>
+        <% } %>
+      </div>
+      <div class="tabs">
+        <button class="tab" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+          EVENTS
+        </button>
+        <button class="tab" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          INBOX
+        </button>
+        <button class="tab" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+          ARCHIVE
+        </button>
+      </div>
+    </div>
+
+    <% if (message) { %><div class="alert alert-success"><%= message %></div><% } %>
+    <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+
+    <!-- Create Notification Form -->
+    <div class="card" style="background:#f8f8f8;border-radius:20px;padding:18px 22px;margin-bottom:18px;">
+      <h3 style="margin-bottom:12px;">Create Notification</h3>
+      <form method="POST" action="/admin/notifications" data-unsaved-warning>
+        <div style="margin-bottom:10px;">
+          <label style="font-weight:700;font-size:14px;">Title <span style="color:red;">*</span></label>
+          <input type="text" name="title" required maxlength="200" placeholder="Notification title" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;" />
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-weight:700;font-size:14px;">Message <span style="color:red;">*</span></label>
+          <textarea name="message" required rows="4" maxlength="2000" placeholder="Notification content..." style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;"></textarea>
+        </div>
+        <button type="submit" style="padding:10px 24px;border:none;border-radius:10px;background:#520003;color:#fff;font-weight:600;cursor:pointer;">Publish Notification</button>
+      </form>
+    </div>
+
+    <div class="pin">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+      PINNED TO TOP
+    </div>
+
+    <% if (!notifications || notifications.length === 0) { %>
+      <div class="card" style="padding:32px;text-align:center;">
+        <p style="color:#888;">No notifications yet.</p>
+      </div>
+    <% } else { %>
+      <% notifications.forEach(function(n, i) { %>
+        <% if (i > 0) { %><hr class="notif-sep"><% } %>
+        <div class="card" style="background:#f8f8f8;border-radius:20px;padding:18px 22px;">
+          <div class="notif-row">
+            <div>
+              <div class="notif-h">
+                <%= n.title %>
+                <% if (n.status === 'pending') { %>
+                  <span class="status-pill pending" style="font-size:11px;padding:2px 10px;vertical-align:middle;margin-left:8px;">Pending</span>
+                <% } else if (n.status === 'approved') { %>
+                  <span class="status-pill approved" style="font-size:11px;padding:2px 10px;vertical-align:middle;margin-left:8px;">Published</span>
+                <% } else if (n.status === 'rejected') { %>
+                  <span class="status-pill rejected" style="font-size:11px;padding:2px 10px;vertical-align:middle;margin-left:8px;">Rejected</span>
+                <% } %>
+              </div>
+              <div class="notif-txt"><%= n.message %></div>
+              <div style="font-size:13px;color:#aaa;margin-top:6px;">
+                by <%= n.creator ? n.creator.display_name : 'Unknown' %>
+                <% if (n.approver) { %> &middot; approved by <%= n.approver.display_name %><% } %>
+                <% if (n.rejected_at) { %> &middot; rejected: <%= n.rejection_reason %><% } %>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:16px;">
+              <div class="notif-time"><%= n.created_at ? new Date(n.created_at).toLocaleDateString() : '' %></div>
+              <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:8px;">
+                <% if (adminRole === 'superadmin' || (n.created_by === currentUserId && n.status === 'pending')) { %>
+                  <button class="notif-modify" style="height:32px;width:auto;padding:0 14px;margin:0;" onclick="toggleNotifActions(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                    Modify
+                  </button>
+                <% } %>
+                <% if (adminRole === 'superadmin' || n.created_by === currentUserId) { %>
+                  <form method="POST" action="/admin/notifications/<%= n.id %>/delete" style="display:inline;" data-confirm-delete="Delete this notification? This action cannot be undone.">
+                    <button type="submit" style="height:32px;border:none;border-radius:8px;background:#c62828;color:#fff;font-weight:600;padding:0 12px;cursor:pointer;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Delete
+                    </button>
+                  </form>
+                <% } %>
+              </div>
+              <!-- Expandable action panel (hidden until Modify clicked) -->
+              <div class="notif-actions-panel" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #ddd;">
+                <% if (n.status === 'pending' && adminRole === 'superadmin') { %>
+                  <button class="notif-modify" style="height:32px;width:auto;padding:0 14px;margin:0;" data-id="<%= n.id %>" data-title="<%= n.title %>" data-message="<%= n.message %>" data-status="<%= n.status %>" onclick="editNotif(this.dataset.id, this.dataset.title, this.dataset.message, this.dataset.status)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                    Edit &amp; Set Status
+                  </button>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </main>
+</div>
+
+<!-- Edit Notification Modal -->
+<div class="modal-overlay" id="editModal" style="display:none;" onclick="if(event.target===this)closeEdit()">
+  <div class="modal-box" style="max-width:520px;margin:10vh auto;padding:24px;background:#fff;border-radius:12px;">
+    <h3 style="margin-bottom:16px;">Edit Notification</h3>
+    <form method="POST" id="editForm">
+      <div style="margin-bottom:10px;">
+        <label style="font-weight:700;font-size:14px;">Title <span style="color:red;">*</span></label>
+        <input type="text" name="title" id="editTitle" required maxlength="200" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;" />
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-weight:700;font-size:14px;">Message <span style="color:red;">*</span></label>
+        <textarea name="message" id="editMessage" required rows="4" maxlength="2000" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;"></textarea>
+      </div>
+      <% if (adminRole === 'superadmin') { %>
+      <div style="margin-bottom:10px;">
+        <label style="font-weight:700;font-size:14px;">Status</label>
+        <select name="status" id="editStatus" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;background:#fff;" onchange="document.getElementById('editReasonRow').style.display=this.value==='rejected'?'block':'none'">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved (Publish)</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div id="editReasonRow" style="display:none;margin-bottom:10px;">
+        <label style="font-weight:700;font-size:14px;">Rejection Reason <span style="color:red;">*</span></label>
+        <input type="text" name="rejection_reason" id="editReason" placeholder="Why is this rejected?" style="width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:10px;margin-top:4px;" />
+      </div>
+      <% } %>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" onclick="closeEdit()" style="padding:8px 20px;border:2px solid #9a9a9a;border-radius:10px;background:#fff;color:#888;font-weight:600;cursor:pointer;">Cancel</button>
+        <button type="submit" style="padding:8px 20px;border:none;border-radius:10px;background:#520003;color:#fff;font-weight:600;cursor:pointer;">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function toggleNotifActions(btn) {
+    var card = btn.closest('.card');
+    var panel = card.querySelector('.notif-actions-panel');
+    if (panel.style.display === 'none' || !panel.style.display) {
+      panel.style.display = 'flex';
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Close';
+    } else {
+      panel.style.display = 'none';
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Modify';
+    }
+  }
+  function editNotif(id, title, message, status) {
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editMessage').value = message;
+    var statusEl = document.getElementById('editStatus');
+    var reasonRow = document.getElementById('editReasonRow');
+    if (statusEl) {
+      statusEl.value = status || 'pending';
+      reasonRow.style.display = status === 'rejected' ? 'block' : 'none';
+      if (status !== 'rejected') document.getElementById('editReason').value = '';
+    }
+    document.getElementById('editForm').action = '/admin/notifications/' + id + '/edit';
+    document.getElementById('editModal').style.display = 'block';
+  }
+  function closeEdit() {
+    document.getElementById('editModal').style.display = 'none';
+  }
+</script>
+</body>
+</html>

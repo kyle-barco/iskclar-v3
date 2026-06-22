@@ -242,6 +242,8 @@
     .form-control.valid ~ .field-success {
       display: block;
     }
+    .char-counter { font-size:.7rem; color:var(--muted); text-align:right; margin-top:2px; }
+    .char-counter.over { color:var(--danger); font-weight:700; }
   </style>
 
   <nav class="navbar">
@@ -318,7 +320,8 @@
             </div>
             <% } %>
 
-              <form method="POST" action="/auth/register" id="registerForm" novalidate>
+              <form method="POST" action="/auth/register" id="registerForm" novalidate data-unsaved-warning>
+                <input type="hidden" name="_token" value="<%= idempotencyToken || '' %>" />
 
                 <!-- ==================== STEP 1: Personal Info ==================== -->
                 <div class="step-content active" id="step1">
@@ -328,14 +331,16 @@
                     <div class="grid-2 gap-12">
                       <div class="form-group">
                         <label>First Name <span class="required">*</span></label>
-                        <input type="text" class="form-control" name="first_name" id="first_name" required
-                          placeholder="Enter first name" />
-                        <div class="field-error">First name is required.</div>
+                        <input type="text" class="form-control" name="first_name" id="first_name" required maxlength="60"
+                          placeholder="Enter first name" data-char-limit />
+                        <div class="char-counter"><span class="char-count">0</span>/60</div>
+                        <div class="field-error">First name is required (letters, hyphens, apostrophes only).</div>
                       </div>
                       <div class="form-group">
                         <label>Middle Name</label>
-                        <input type="text" class="form-control" name="middle_name" id="middle_name"
-                          placeholder="Enter middle name" />
+                        <input type="text" class="form-control" name="middle_name" id="middle_name" maxlength="60"
+                          placeholder="Enter middle name" data-char-limit />
+                        <div class="char-counter"><span class="char-count">0</span>/60</div>
                         <div class="field-error"></div>
                       </div>
                     </div>
@@ -343,9 +348,10 @@
                     <div class="grid-2 gap-12">
                       <div class="form-group">
                         <label>Last Name <span class="required">*</span></label>
-                        <input type="text" class="form-control" name="last_name" id="last_name" required
-                          placeholder="Enter last name" />
-                        <div class="field-error">Last name is required.</div>
+                        <input type="text" class="form-control" name="last_name" id="last_name" required maxlength="60"
+                          placeholder="Enter last name" data-char-limit />
+                        <div class="char-counter"><span class="char-count">0</span>/60</div>
+                        <div class="field-error">Last name is required (letters, hyphens, apostrophes only).</div>
                       </div>
                       <div class="form-group">
                         <label>Suffix</label>
@@ -456,9 +462,17 @@
                           <span class="req-icon">&#x2717;</span>
                           At least one lowercase letter
                         </li>
+                        <li id="reqNumber">
+                          <span class="req-icon">&#x2717;</span>
+                          At least one number
+                        </li>
                         <li id="reqSpecial">
                           <span class="req-icon">&#x2717;</span>
                           At least one special character
+                        </li>
+                        <li id="reqNoName">
+                          <span class="req-icon">&#x2717;</span>
+                          Cannot contain your name, username, or email
                         </li>
                       </ul>
                     </div>
@@ -470,6 +484,19 @@
                       <div class="field-error" id="confirmPwError">Passwords do not match.</div>
                     </div>
 
+                    <hr class="divider" />
+                    <div class="form-group">
+                      <div class="check-group">
+                        <input type="checkbox" id="register-r-terms" name="agree_terms" value="1" />
+                        <label for="register-r-terms">I have read and agree to the <span onclick="register_openLegalModal('terms')" style="color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;">Terms of Service</span> and <span onclick="register_openLegalModal('privacy')" style="color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;">Privacy Policy</span> of Iskolarly. <span class="required">*</span></label>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="check-group">
+                        <input type="checkbox" id="register-r-data" name="agree_data_privacy" value="1" />
+                        <label for="register-r-data">I consent to the collection and processing of my personal data for scholarship evaluation purposes, in compliance with the Data Privacy Act of 2012 (RA 10173). <span class="required">*</span></label>
+                      </div>
+                    </div>
                     <div class="btn-row mt-16">
                       <button type="button" class="btn btn-outline btn-lg" onclick="goToStep(1)">&larr; Back</button>
                       <button type="button" class="btn btn-primary btn-lg" onclick="goToStep(3)">Next: Review &rarr;</button>
@@ -540,6 +567,107 @@
                 </div>
 
               </form>
+
+    <!-- Privacy Policy Modal -->
+    <div id="register-privacyModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(34,34,34,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+      <div style="background:#FCFFFD;border-radius:12px;width:100%;max-width:620px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 28px 16px;border-bottom:1px solid #CBD5E0;flex-shrink:0;">
+          <div>
+            <div style="display:inline-block;background:rgba(201,168,76,.15);color:#B45309;border:1px solid rgba(201,168,76,.3);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 12px;border-radius:12px;margin-bottom:6px;">Legal</div>
+            <h2 style="font-size:1.15rem;font-weight:800;color:#360D0E;margin:0;">Privacy Policy</h2>
+          </div>
+          <button type="button" onclick="register_closeLegalModal('privacy')" style="background:none;border:none;cursor:pointer;color:#888888;padding:4px;border-radius:8px;display:flex;align-items:center;justify-content:center;" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div style="overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:12px;">
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">1</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">When you sign up, we collect your name, birthday, contact number, email, address, student ID, course, year level, GPA, family background, and income details. We also collect documents you upload and basic session info like your device and browser.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">2</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">We use your information to process your scholarship application, verify eligibility, send you updates and reminders, and let authorized officers review your documents.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">3</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Only you and authorized Iskolarly admins can see your data. We don't sell it or share it with anyone outside the platform, except when the law requires it.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">4</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Your password is encrypted and never stored as plain text. We take reasonable steps to keep your account and data secure. Keep your login credentials private.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">5</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">You have the right to view, correct, or request deletion of your data under the Data Privacy Act of 2012 (RA 10173). Contact us through the platform to do so.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">6</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">We may update this policy from time to time. Continued use of Iskolarly means you accept any changes.</p>
+          </div>
+        </div>
+        <div style="padding:16px 28px;border-top:1px solid #CBD5E0;flex-shrink:0;">
+          <button type="button" onclick="register_closeLegalModal('privacy')" style="width:100%;padding:11px;background:#360D0E;color:#FCFFFD;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="register-termsModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(34,34,34,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;">
+      <div style="background:#FCFFFD;border-radius:12px;width:100%;max-width:620px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 28px 16px;border-bottom:1px solid #CBD5E0;flex-shrink:0;">
+          <div>
+            <div style="display:inline-block;background:rgba(201,168,76,.15);color:#B45309;border:1px solid rgba(201,168,76,.3);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 12px;border-radius:12px;margin-bottom:6px;">Legal</div>
+            <h2 style="font-size:1.15rem;font-weight:800;color:#360D0E;margin:0;">Terms of Use</h2>
+          </div>
+          <button type="button" onclick="register_closeLegalModal('terms')" style="background:none;border:none;cursor:pointer;color:#888888;padding:4px;border-radius:8px;display:flex;align-items:center;justify-content:center;" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div style="overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:12px;">
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">1</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Iskolarly is for students applying for scholarships and admins managing them. By signing up, you agree to use the platform only for its intended purpose.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">2</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">You're responsible for keeping your account secure and making sure all the information you provide is accurate and truthful.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">3</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Only upload real, unaltered documents. Submitting fake or falsified files is grounds for immediate disqualification and may lead to legal consequences.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">4</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Active scholars must maintain their GPA, carry the minimum unit load, and submit renewal documents on time. Failing to meet these requirements may affect your scholarship status.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">5</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">Don't try to access other people's accounts, tamper with the system, or upload harmful files. Misuse of the platform will result in suspension or permanent removal of your account.</p>
+          </div>
+          <div style="background:#F4F7F5;border:1px solid #CBD5E0;border-radius:12px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:32px;height:32px;background:#360D0E;color:#FCFFFD;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">6</div>
+            <p style="font-size:.875rem;color:#222222;line-height:1.75;">We may update these terms from time to time. Continuing to use Iskolarly after updates means you accept the new terms.</p>
+          </div>
+        </div>
+        <div style="padding:16px 28px;border-top:1px solid #CBD5E0;flex-shrink:0;">
+          <button type="button" onclick="register_closeLegalModal('terms')" style="width:100%;padding:11px;background:#360D0E;color:#FCFFFD;border:none;border-radius:12px;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="register-successModal" style="display:none;">
+      <div class="modal">
+        <div class="modal-body text-center" style="padding:48px 32px;">
+          <div style="font-size:3rem;margin-bottom:16px;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <h2 style="font-size:1.5rem;margin-bottom:8px;">Account Created!</h2>
+          <p style="color:var(--muted);margin-bottom:8px;">Your account has been successfully registered.</p>
+          <p style="font-size:.85rem;color:var(--muted);margin-bottom:28px;">You can now log in with your credentials.</p>
+          <a href="/auth/login" class="btn btn-primary btn-lg w-full">Proceed to Login →</a>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -695,11 +823,31 @@
         }
       });
 
+      /* ========== Character counters ========== */
+      document.querySelectorAll('[data-char-limit]').forEach(function (el) {
+        var counter = el.closest('.form-group').querySelector('.char-count');
+        if (counter) {
+          counter.textContent = el.value.length;
+          el.addEventListener('input', function () {
+            counter.textContent = this.value.length;
+            var parent = el.closest('.form-group').querySelector('.char-counter');
+            if (parent) parent.classList.toggle('over', this.value.length > this.maxLength);
+          });
+        }
+      });
+
       /* ========== Step navigation ========== */
       window.goToStep = function (step) {
         if (step > currentStep) {
+          if (currentStep === 2 && step === 3) {
+            const terms = document.getElementById('register-r-terms');
+            const data  = document.getElementById('register-r-data');
+            if (!terms.checked || !data.checked) {
+              alert('You must accept the Terms of Service and Data Privacy Consent to continue.');
+              return;
+            }
+          }
           if (!validateStep(currentStep)) {
-            // Scroll to first error
             const first = document.querySelector('.form-control.invalid');
             if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
@@ -711,6 +859,31 @@
         if (step === 3) populateReview();
         window.scrollTo({ top: form.offsetTop - 80, behavior: 'smooth' });
       };
+
+      /* ========== Legal modal functions ========== */
+      window.register_openLegalModal = function (type) {
+        const id = type === 'privacy' ? 'register-privacyModal' : 'register-termsModal';
+        document.getElementById(id).style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+      window.register_closeLegalModal = function (type) {
+        const id = type === 'privacy' ? 'register-privacyModal' : 'register-termsModal';
+        document.getElementById(id).style.display = 'none';
+        document.body.style.overflow = '';
+      };
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          register_closeLegalModal('privacy');
+          register_closeLegalModal('terms');
+        }
+      });
+      // Click outside to close
+      document.addEventListener('DOMContentLoaded', function () {
+        const pm = document.getElementById('register-privacyModal');
+        const tm = document.getElementById('register-termsModal');
+        if (pm) pm.addEventListener('click', function (e) { if (e.target === this) register_closeLegalModal('privacy'); });
+        if (tm) tm.addEventListener('click', function (e) { if (e.target === this) register_closeLegalModal('terms'); });
+      });
 
       function updateUI() {
         for (let i = 1; i <= 3; i++) {
@@ -741,7 +914,9 @@
       const reqLength = document.getElementById('reqLength');
       const reqUpper = document.getElementById('reqUpper');
       const reqLower = document.getElementById('reqLower');
+      const reqNumber = document.getElementById('reqNumber');
       const reqSpecial = document.getElementById('reqSpecial');
+      const reqNoName = document.getElementById('reqNoName');
 
       const strengthConfig = [
         { color: '#B91C1C', label: 'Weak', textColor: '#B91C1C' },
@@ -757,16 +932,27 @@
         const hasLength = val.length >= 8;
         const hasUpper = /[A-Z]/.test(val);
         const hasLower = /[a-z]/.test(val);
+        const hasNumber = /[0-9]/.test(val);
         const hasSpecial = /[^A-Za-z0-9]/.test(val);
+
+        var lowerVal = val.toLowerCase();
+        var fn = (document.getElementById('first_name').value || '').toLowerCase();
+        var ln = (document.getElementById('last_name').value || '').toLowerCase();
+        var un = (document.getElementById('username').value || '').toLowerCase();
+        var em = (document.getElementById('email').value || '').toLowerCase();
+        var noName = !(fn && lowerVal.includes(fn)) && !(ln && lowerVal.includes(ln)) && !(un && lowerVal.includes(un)) && !(em && lowerVal.includes(em));
 
         setReq(reqLength, hasLength);
         setReq(reqUpper, hasUpper);
         setReq(reqLower, hasLower);
+        setReq(reqNumber, hasNumber);
         setReq(reqSpecial, hasSpecial);
+        setReq(reqNoName, noName && val.length > 0);
 
         if (hasLength) score++;
         if (hasUpper) score++;
         if (hasLower) score++;
+        if (hasNumber) score++;
         if (hasSpecial) score++;
 
         if (val.length === 0) {
@@ -775,9 +961,11 @@
           return;
         }
 
-        const level = Math.min(score - 1, 3);
-        const cfg = strengthConfig[level] || strengthConfig[0];
-        strengthFill.style.width = ((score / 4) * 100) + '%';
+        var maxScore = 5;
+        var level = Math.min(score - 1, 3);
+        if (level < 0) level = 0;
+        var cfg = strengthConfig[Math.min(level, 3)];
+        strengthFill.style.width = ((score / maxScore) * 100) + '%';
         strengthFill.style.background = cfg.color;
         strengthLabel.textContent = cfg.label;
         strengthLabel.style.color = cfg.textColor;
@@ -857,8 +1045,22 @@
         confirmEl.removeAttribute('name');
         const btn = form.querySelector('button[type="submit"]');
         btn.disabled = true;
-        btn.textContent = 'Creating Account...';
+        btn.innerHTML = 'Creating Account... <span class="spinner"></span>';
       });
+
+      /* ========== Double-submit prevention for all forms ========== */
+      document.querySelectorAll('form').forEach(function (f) {
+        f.addEventListener('submit', function () {
+          var b = f.querySelector('button[type="submit"]');
+          if (b && !b.disabled) { b.disabled = true; }
+        });
+      });
+
+      /* ========== Show success modal if redirected back ========== */
+      if (new URLSearchParams(window.location.search).get('success') === '1') {
+        const sm = document.getElementById('register-successModal');
+        if (sm) { sm.style.display = 'flex'; sm.classList.add('open'); }
+      }
 
     })();
   </script>

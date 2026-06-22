@@ -1,6 +1,6 @@
 <%- include('../partials/head', { title: 'Profile | Iskolarly' }) %>
 
-<nav class="navbar">
+<nav class="navbar navbar-portal">
   <div class="navbar-inner">
     <a href="/portal" class="navbar-brand">
       <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
@@ -36,7 +36,9 @@
 
     <div class="card mb-24">
       <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-        <div style="width:80px;height:80px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:var(--navy);"><%= (student.first_name || '?')[0].toUpperCase() %></div>
+        <div id="avatarPreview" style="width:80px;height:80px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:var(--navy);flex-shrink:0;">
+          <%= (student.first_name || '?')[0].toUpperCase() %>
+        </div>
         <div>
           <h2 style="font-size:1.3rem;margin-bottom:4px;"><%= student.first_name %> <%= student.middle_name ? student.middle_name + ' ' : '' %><%= student.last_name %></h2>
           <p style="color:var(--muted);font-size:.875rem;"><%= student.student_id || 'ID: ' + student.id.slice(0,8) %> &middot; <%= student.degree_program || '' %>, <%= student.year_level ? student.year_level + suffix(student.year_level) + ' Year' : '' %></p>
@@ -45,14 +47,30 @@
       </div>
     </div>
 
-    <form method="POST" action="/portal/profile" class="card mb-24">
+    <form method="POST" action="/portal/profile" class="card mb-24" id="profileForm">
+      <input type="hidden" name="_token" value="<%= idempotencyToken || '' %>" />
       <div class="card-header"><h3>Personal Information</h3></div>
       <div class="form-row">
-        <div class="form-group"><label>Last Name <span class="required">*</span></label><input type="text" class="form-control" name="last_name" value="<%= student.last_name || '' %>" required /></div>
-        <div class="form-group"><label>First Name <span class="required">*</span></label><input type="text" class="form-control" name="first_name" value="<%= student.first_name || '' %>" required /></div>
+        <div class="form-group">
+          <label>Last Name <span class="required">*</span></label>
+          <input type="text" class="form-control" name="last_name" value="<%= student.last_name || '' %>" required maxlength="60" data-char-limit />
+          <div class="char-counter"><span class="char-count">0</span>/60</div>
+          <div class="field-error">Last name is required (letters, hyphens, apostrophes only).</div>
+        </div>
+        <div class="form-group">
+          <label>First Name <span class="required">*</span></label>
+          <input type="text" class="form-control" name="first_name" value="<%= student.first_name || '' %>" required maxlength="60" data-char-limit />
+          <div class="char-counter"><span class="char-count">0</span>/60</div>
+          <div class="field-error">First name is required (letters, hyphens, apostrophes only).</div>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Middle Name</label><input type="text" class="form-control" name="middle_name" value="<%= student.middle_name || '' %>" /></div>
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input type="text" class="form-control" name="middle_name" value="<%= student.middle_name || '' %>" maxlength="60" data-char-limit />
+          <div class="char-counter"><span class="char-count">0</span>/60</div>
+          <div class="field-error">Letters, hyphens, apostrophes only.</div>
+        </div>
         <div class="form-group"><label>Suffix</label>
           <select class="form-control" name="suffix">
             <option value="">None</option>
@@ -74,14 +92,15 @@
       </div>
       <div class="form-row">
         <div class="form-group"><label>Contact Number</label><input type="text" class="form-control" name="contact_number" value="<%= student.contact_number || '' %>" /></div>
-        <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<%= student.email || '' %>" /></div>
+        <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<%= student.email || '' %>" maxlength="254" /></div>
       </div>
       <div class="flex justify-end mt-16">
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="submit" class="btn btn-primary" id="profileSubmitBtn">Save Changes</button>
       </div>
     </form>
 
-    <form method="POST" action="/portal/profile/academic" class="card mb-24">
+    <form method="POST" action="/portal/profile/academic" class="card mb-24" id="academicForm">
+      <input type="hidden" name="_token" value="<%= idempotencyToken || '' %>" />
       <div class="card-header"><h3>Academic Information</h3></div>
       <div class="form-row">
         <div class="form-group"><label>Student ID</label><input type="text" class="form-control" name="student_id" value="<%= student.student_id || '' %>" placeholder="e.g. 2024-00001" /></div>
@@ -95,23 +114,122 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>College</label><input type="text" class="form-control" name="college" value="<%= student.college || '' %>" placeholder="e.g. College of Computer Studies" /></div>
-        <div class="form-group"><label>Course / Degree Program</label><input type="text" class="form-control" name="degree_program" value="<%= student.degree_program || '' %>" placeholder="e.g. BS Computer Science" /></div>
+        <div class="form-group">
+          <label>College</label>
+          <input type="text" class="form-control" name="college" value="<%= student.college || '' %>" placeholder="e.g. College of Computer Studies" maxlength="100" data-char-limit />
+          <div class="char-counter"><span class="char-count">0</span>/100</div>
+        </div>
+        <div class="form-group">
+          <label>Course / Degree Program</label>
+          <input type="text" class="form-control" name="degree_program" value="<%= student.degree_program || '' %>" placeholder="e.g. BS Computer Science" maxlength="150" data-char-limit />
+          <div class="char-counter"><span class="char-count">0</span>/150</div>
+        </div>
       </div>
       <div class="flex justify-end mt-16">
-        <button type="submit" class="btn btn-primary">Save Academic Info</button>
+        <button type="submit" class="btn btn-primary" id="academicSubmitBtn">Save Academic Info</button>
       </div>
     </form>
 
-    <form method="POST" action="/portal/profile/password" class="card">
+    <form method="POST" action="/portal/profile/password" class="card" id="passwordForm">
+      <input type="hidden" name="_token" value="<%= idempotencyToken || '' %>" />
       <div class="card-header"><h3>Change Password</h3></div>
       <div class="form-group"><label>Current Password <span class="required">*</span></label><input type="password" class="form-control" name="current_password" required /></div>
-      <div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" class="form-control" name="new_password" required minlength="8" /></div>
+      <div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" class="form-control" name="new_password" id="new_password" required minlength="8" maxlength="128" /></div>
+      <div class="form-group"><label>Confirm New Password <span class="required">*</span></label><input type="password" class="form-control" name="confirm_password" id="confirm_password" required /></div>
+      <ul class="pw-requirements" style="margin:12px 0 0;list-style:none;font-size:.78rem;">
+        <li id="preqLength">&#x2717; At least 8 characters</li>
+        <li id="preqUpper">&#x2717; At least one uppercase letter</li>
+        <li id="preqLower">&#x2717; At least one lowercase letter</li>
+        <li id="preqNumber">&#x2717; At least one number</li>
+        <li id="preqSpecial">&#x2717; At least one special character</li>
+        <li id="preqNoName">&#x2717; Cannot contain your name, username, or email</li>
+        <li id="preqMatch">&#x2717; Passwords must match</li>
+      </ul>
+      <div class="field-error" id="pwError" style="margin-bottom:8px;"></div>
       <div class="flex justify-end mt-16">
-        <button type="submit" class="btn btn-primary">Update Password</button>
+        <button type="submit" class="btn btn-primary" id="passwordSubmitBtn">Update Password</button>
       </div>
     </form>
   </main>
 </div>
+
+<style>
+.field-error { font-size:.75rem; color:var(--danger); margin-top:4px; display:none; line-height:1.4; }
+.form-control.invalid { border-color:var(--danger); background:#FFF5F5; }
+.char-counter { font-size:.7rem; color:var(--muted); text-align:right; margin-top:2px; }
+.char-counter.over { color:var(--danger); font-weight:700; }
+.pw-requirements li { margin-bottom:4px; color:var(--muted); }
+.pw-requirements li.met { color:var(--success); }
+
+</style>
+
+<script>
+(function() {
+  /* ── Character counters ─────────────────────────────── */
+  document.querySelectorAll('[data-char-limit]').forEach(function(el) {
+    var counter = el.closest('.form-group').querySelector('.char-count');
+    if (counter) {
+      counter.textContent = el.value.length;
+      el.addEventListener('input', function() {
+        counter.textContent = this.value.length;
+        if (parseInt(counter.textContent) > parseInt(this.maxLength)) {
+          el.closest('.form-group').querySelector('.char-counter').classList.add('over');
+        } else {
+          el.closest('.form-group').querySelector('.char-counter').classList.remove('over');
+        }
+      });
+    }
+  });
+
+  /* ── Name validation ────────────────────────────────── */
+  var nameRegex = /^[A-Za-zÀ-ÿ\s'\-]+$/;
+  function validateNameField(el, label) {
+    var val = el.value.trim();
+    var errEl = el.closest('.form-group').querySelector('.field-error');
+    el.classList.remove('invalid');
+    if (errEl) errEl.style.display = 'none';
+    if (!val) { if (el.required) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' is required.'; errEl.style.display = 'block'; } return false; } return true; }
+    if (val.length < 2) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' must be at least 2 characters.'; errEl.style.display = 'block'; } return false; }
+    if (!nameRegex.test(val)) { el.classList.add('invalid'); if (errEl) { errEl.textContent = label + ' can only contain letters, hyphens, and apostrophes.'; errEl.style.display = 'block'; } return false; }
+    return true;
+  }
+  document.querySelectorAll('input[name="first_name"], input[name="last_name"], input[name="middle_name"]').forEach(function(el) {
+    el.addEventListener('blur', function() { validateNameField(this, this.name === 'first_name' ? 'First name' : this.name === 'last_name' ? 'Last name' : 'Middle name'); });
+  });
+
+  /* ── Password validation (live) ─────────────────────── */
+  var pwInput = document.getElementById('new_password');
+  var confirmInput = document.getElementById('confirm_password');
+  if (pwInput) {
+    var fields = { username: '<%= student.username %>', email: '<%= student.email %>', first_name: '<%= student.first_name %>', last_name: '<%= student.last_name %>' };
+    function checkPw() {
+      var val = pwInput.value;
+      var match = confirmInput.value;
+      var pwd = '<%= student.password %>';
+      setReq('preqLength', val.length >= 8);
+      setReq('preqUpper', /[A-Z]/.test(val));
+      setReq('preqLower', /[a-z]/.test(val));
+      setReq('preqNumber', /[0-9]/.test(val));
+      setReq('preqSpecial', /[^A-Za-z0-9]/.test(val));
+      var noName = true;
+      var lowerVal = val.toLowerCase();
+      Object.values(fields).forEach(function(f) { if (f && lowerVal.includes(f.toLowerCase())) noName = false; });
+      setReq('preqNoName', noName && val.length > 0);
+      setReq('preqMatch', val === match && val.length > 0);
+    }
+    function setReq(id, met) { var el = document.getElementById(id); if (el) { el.classList.toggle('met', met); el.innerHTML = (met ? '&#x2713;' : '&#x2717;') + el.innerHTML.substring(1); } }
+    pwInput.addEventListener('input', checkPw);
+    confirmInput.addEventListener('input', checkPw);
+  }
+
+  /* ── Double-submit prevention ───────────────────────── */
+  document.querySelectorAll('form').forEach(function(form) {
+    form.addEventListener('submit', function() {
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.innerHTML = 'Processing... <span class="spinner"></span>'; }
+    });
+  });
+})();
+</script>
 </body>
 </html>

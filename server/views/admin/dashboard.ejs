@@ -1,114 +1,87 @@
 <%- include('../partials/head', { title: 'Dashboard | Iskolarly' }) %>
-<nav class="navbar">
+<nav class="navbar navbar-admin">
   <div class="navbar-inner">
     <a href="/admin" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
     </a>
-    <ul class="nav-links">
-      <li><a href="/admin/applications">Applications</a></li>
-      <li><a href="/admin/students">Students</a></li>
-      <li><a href="/auth/logout">Log Out</a></li>
-    </ul>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
   </div>
 </nav>
 <div class="dashboard-layout">
   <%- include('partials/sidebar', { currentPage: 'dashboard', adminRole }) %>
-  <main class="main-content" style="margin-left:0;padding:32px;">
-    <h1 style="font-size:1.8rem;margin-bottom:24px;">Dashboard</h1>
-
-    <div class="grid-3 gap-16 mb-16">
-      <div class="stat-card" style="background:#1e293b;">
-        <div class="stat-value" style="color:#fff;display:flex;align-items:center;gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <%= stats.applications %>
-        </div>
-        <div class="stat-label" style="color:rgba(255,255,255,.7);">Total Applications</div>
-      </div>
-      <div class="stat-card" style="background:#166534;">
-        <div class="stat-value" style="color:#fff;display:flex;align-items:center;gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><polyline points="20 6 9 17 4 12"/></svg>
-          <%= stats.approved %>
-        </div>
-        <div class="stat-label" style="color:rgba(255,255,255,.7);">Approved</div>
-      </div>
-      <div class="stat-card" style="background:#854d0e;">
-        <div class="stat-value" style="color:#fff;display:flex;align-items:center;gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <%= stats.pending %>
-        </div>
-        <div class="stat-label" style="color:rgba(255,255,255,.7);">Pending</div>
-      </div>
+  <main class="main-content">
+    <div class="dashboard-banner">
+      <h1>Admin Dashboard</h1>
+      <p>Welcome back. Here's an overview of scholarship operations.</p>
     </div>
-    <div class="grid-2 gap-16 mb-32">
-      <div class="stat-card" style="background:#1e40af;">
-        <div class="stat-value" style="color:#fff;display:flex;align-items:center;gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <%= stats.under_review %>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">✓</div>
+        <div>
+          <div class="stat-number"><%= stats.approved %></div>
+          <div class="stat-label">APPROVED APPLICATIONS</div>
+          <div class="stat-change">↑ active scholars</div>
         </div>
-        <div class="stat-label" style="color:rgba(255,255,255,.7);">Under Review</div>
       </div>
-      <div class="stat-card" style="background:#991b1b;">
-        <div class="stat-value" style="color:#fff;display:flex;align-items:center;gap:8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          <%= stats.rejected %>
+      <div class="stat-card">
+        <div class="stat-icon">⌕</div>
+        <div>
+          <div class="stat-number"><%= stats.pending + stats.under_review %></div>
+          <div class="stat-label">UNDER EVALUATION</div>
+          <div class="stat-change"><%= stats.pending %> pending / <%= stats.under_review %> under review</div>
         </div>
-        <div class="stat-label" style="color:rgba(255,255,255,.7);">Rejected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✕</div>
+        <div>
+          <div class="stat-number"><%= stats.rejected %></div>
+          <div class="stat-label">REJECTED</div>
+          <div class="stat-change"><%= stats.rejected > 0 ? Math.round(stats.rejected / (stats.approved || 1) * 100) : 0 %>% rejection rate</div>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
-        <h2 style="font-size:1.25rem;font-weight:600;">Recent Applications</h2>
-        <a href="/admin/applications" class="btn btn-sm btn-outline">View All</a>
+    <div class="table-card">
+      <div class="card-header">
+        <h3>Recent Applications</h3>
+        <a href="/admin/applications">View All →</a>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Program</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (recentApplications && recentApplications.length) { %>
-              <% recentApplications.forEach(function(app) { %>
-                <% 
-                  var badgeClass = app.status;
-                  if (app.status === 'under_review') badgeClass = 'review';
-                  else if (app.status === 'waitlisted') badgeClass = 'gold';
-                %>
-                <tr>
-                  <td><%= app.student.first_name %> <%= app.student.last_name %></td>
-                  <td><%= app.program.name %></td>
-                  <td><span class="badge badge-<%= badgeClass %>"><%= app.status.replace('_', ' ') %></span></td>
-                  <td><%= new Date(app.created_at).toLocaleDateString() %></td>
-                  <td class="td-actions">
-                    <a href="/admin/students/<%= app.student_id %>" class="btn btn-sm btn-outline">View</a>
-                    <form method="POST" action="/admin/applications/<%= app.id %>" style="display:inline-flex;gap:4px;">
-                      <select name="status" class="form-control" style="width:auto;font-size:.8rem;padding:4px 8px;">
-                        <option value="pending" <%= app.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                        <option value="under_review" <%= app.status === 'under_review' ? 'selected' : '' %>>Review</option>
-                        <option value="approved" <%= app.status === 'approved' ? 'selected' : '' %>>Approve</option>
-                        <option value="rejected" <%= app.status === 'rejected' ? 'selected' : '' %>>Reject</option>
-                        <option value="waitlisted" <%= app.status === 'waitlisted' ? 'selected' : '' %>>Waitlist</option>
-                      </select>
-                      <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                    </form>
-                  </td>
-                </tr>
-              <% }); %>
-            <% } else { %>
-              <tr>
-                <td colspan="5" class="text-center text-muted">No applications found.</td>
-              </tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
+      <% if (recentApplications && recentApplications.length) { %>
+        <% recentApplications.forEach(function(app) { %>
+          <% 
+            var initial = (app.student.first_name || 'A').charAt(0).toUpperCase();
+            var badgeClass = 'pending';
+            if (app.status === 'approved') badgeClass = 'approved';
+            else if (app.status === 'under_review') badgeClass = 'evaluating';
+            else if (app.status === 'waitlisted') badgeClass = 'evaluating';
+            else if (app.status === 'rejected') badgeClass = 'rejected';
+            var colorClass = 'yellow';
+            if (['approved','evaluating'].includes(app.status)) colorClass = 'blue';
+            else if (app.status === 'rejected') colorClass = 'red';
+          %>
+          <div class="application-item">
+            <div class="left">
+              <div class="user-badge <%= colorClass %>"><%= initial %></div>
+              <div class="application-info">
+                <strong><%= app.student.first_name %> <%= app.student.last_name %></strong>
+                <span><%= app.program.name %></span>
+              </div>
+            </div>
+            <div class="status-pill <%= badgeClass %>"><%= app.status.replace('_', ' ') %></div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p class="text-muted" style="padding:18px;text-align:center;">No recent applications.</p>
+      <% } %>
     </div>
   </main>
 </div>

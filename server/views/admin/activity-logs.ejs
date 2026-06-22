@@ -1,0 +1,117 @@
+<%- include('../partials/head', { title: 'Activity Logs | Iskolarly' }) %>
+<nav class="navbar navbar-admin">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub">Superadmin Portal</div>
+      </div>
+    </a>
+    <div class="user">
+      <span style="opacity:.7">Super Administrator</span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'activity-logs', adminRole }) %>
+  <main class="main-content">
+    <div class="panel" style="margin-bottom:14px;">
+      <div class="panel-top">
+        <div>
+          <div class="panel-title">Activity Logs</div>
+          <p style="opacity:.7;margin-top:4px;font-size:14px;">Audit trail of all admin actions.</p>
+        </div>
+      </div>
+    </div>
+
+    <% if (pendingDeletions && pendingDeletions.length > 0) { %>
+    <div class="panel" style="margin-bottom:14px;border:2px solid #9B6B0B;">
+      <div class="panel-top">
+        <div>
+          <div class="panel-title" style="color:#856404;">Pending Deletion Requests</div>
+          <p style="opacity:.7;margin-top:4px;font-size:14px;">Programs awaiting superadmin approval.</p>
+        </div>
+      </div>
+      <% pendingDeletions.forEach(function(p) { %>
+      <div style="background:#FFF3CD;border-radius:12px;padding:14px 18px;margin:8px 16px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <strong><%= p.name %></strong><br>
+          <span style="font-size:13px;color:#856404;">
+            Requested by <strong><%= p.deletion_requester ? p.deletion_requester.display_name : 'Unknown' %></strong>
+            on <%= p.deletion_requested_at ? new Date(p.deletion_requested_at).toLocaleString() : '' %>
+          </span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <form method="POST" action="/admin/programs/<%= p.id %>/approve-deletion" style="margin:0;">
+            <button type="submit" style="padding:8px 16px;border:none;border-radius:8px;background:#4C8F45;color:#fff;font-weight:600;cursor:pointer;">Approve Deletion</button>
+          </form>
+          <form method="POST" action="/admin/programs/<%= p.id %>/reject-deletion" style="margin:0;">
+            <button type="submit" style="padding:8px 16px;border:none;border-radius:8px;background:#9B6B0B;color:#fff;font-weight:600;cursor:pointer;">Restore</button>
+          </form>
+          <form method="POST" action="/admin/programs/<%= p.id %>/permanent-delete" style="margin:0;">
+            <button type="submit" style="padding:8px 16px;border:none;border-radius:8px;background:#c62828;color:#fff;font-weight:600;cursor:pointer;">Permanently Delete</button>
+          </form>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <div class="table-card">
+      <div class="header">
+        <div>ADMIN</div>
+        <div>ACTION</div>
+        <div>TARGET TYPE</div>
+        <div>DETAILS</div>
+        <div>DATE</div>
+      </div>
+      <% if (!logs || logs.length === 0) { %>
+        <p class="text-muted" style="padding:32px;text-align:center;">No activity logs yet.</p>
+      <% } else { %>
+        <% logs.forEach(function(log) { %>
+          <div class="row" style="cursor:default;">
+            <div style="font-weight:600;color:#333;"><%= log.admin ? log.admin.display_name || log.admin.email : 'Unknown' %></div>
+            <div>
+              <% if (log.action === 'approve_notification') { %>
+                <span class="status-pill approved" style="font-size:11px;">Approved</span>
+              <% } else if (log.action === 'reject_notification') { %>
+                <span class="status-pill rejected" style="font-size:11px;">Rejected</span>
+              <% } else if (log.action === 'create_notification') { %>
+                <span style="color:var(--navy2);font-weight:600;">Created</span>
+              <% } else if (log.action === 'delete_notification') { %>
+                <span style="color:#c62828;font-weight:600;">Deleted</span>
+              <% } else if (log.action === 'edit_notification') { %>
+                <span style="color:#f57c00;font-weight:600;">Edited</span>
+              <% } else if (log.action === 'time_in') { %>
+                <span style="color:#248E17;font-weight:700;">⏰ Time In</span>
+              <% } else if (log.action === 'time_out') { %>
+                <span style="color:#B30000;font-weight:700;">⏰ Time Out</span>
+              <% } else { %>
+                <%= log.action %>
+              <% } %>
+            </div>
+            <div style="color:#888;"><%= log.target_type || '—' %></div>
+            <div style="color:#666;word-break:break-word;max-height:60px;overflow:hidden;">
+              <% if (log.details) { %>
+                <% var parsed = JSON.parse(log.details); %>
+                <% if (typeof parsed === 'object') { %>
+                  <%= Object.entries(parsed).map(function(e) { return e[0]+': '+e[1]; }).join(', ') %>
+                <% } else { %>
+                  <%= parsed %>
+                <% } %>
+              <% } else { %>
+                —
+              <% } %>
+            </div>
+            <div style="color:#aaa;font-size:12px;"><%= new Date(log.created_at).toLocaleDateString() %> <%= new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) %></div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

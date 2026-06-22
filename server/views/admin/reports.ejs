@@ -1,0 +1,103 @@
+<%- include('../partials/head', { title: 'Reports & Analytics | Iskolarly' }) %>
+<nav class="navbar navbar-admin">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
+    </a>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'reports', adminRole }) %>
+  <main class="main-content">
+    <div class="report-banner">
+      <div>
+        <h1>Reports & Analytics</h1>
+        <p>Monitor scholarship applications, scholar demographics, and budget utilization.</p>
+      </div>
+      <div>
+        <button onclick="window.print()" class="btn btn-sm" style="background:#c62828;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;">Export PDF</button>
+        <button onclick="exportTableToExcel()" class="btn btn-sm" style="background:#2e7d32;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;margin-left:8px;">Export Excel</button>
+      </div>
+    </div>
+    <div class="report-filters">
+      <select><option><%= currentSy || '2025-2026' %></option></select>
+      <select><option>1st Semester</option><option>2nd Semester</option></select>
+      <button class="report-generate-btn">Generate Report</button>
+    </div>
+    <div class="report-stats-grid">
+      <div class="report-stat-card">
+        <div class="report-stat-num"><%= totalScholars || 0 %></div>
+        <div class="report-stat-label">Total Scholars</div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-num"><%= totalApplications || 0 %></div>
+        <div class="report-stat-label">Applications</div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-num"><%= totalApproved || 0 %></div>
+        <div class="report-stat-label">Approved</div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-num"><%= budgetReleased || '₱--' %></div>
+        <div class="report-stat-label">Budget Released</div>
+      </div>
+    </div>
+    <div class="report-grid-2">
+      <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:12px;">Application Status Overview</h3>
+        <div>
+          <div class="report-progress-label"><span>Approved</span><strong><%= totalApproved || 0 %></strong></div>
+          <div class="report-bar"><div class="report-bar-fill" style="width:<%= approvedPct || 0 %>%;background:var(--navy2);"></div></div>
+          <div class="report-progress-label"><span>Pending</span><strong><%= pendingCount || 0 %></strong></div>
+          <div class="report-bar"><div class="report-bar-fill" style="width:<%= pendingPct || 0 %>%;background:var(--gold);"></div></div>
+          <div class="report-progress-label"><span>Rejected</span><strong><%= rejectedCount || 0 %></strong></div>
+          <div class="report-bar"><div class="report-bar-fill" style="width:<%= rejectedPct || 0 %>%;background:#c62828;"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:12px;">Scholarship Distribution</h3>
+        <p style="margin-bottom:6px;">Academic <%= academicPct || 0 %>%</p>
+        <p style="margin-bottom:6px;">Financial <%= financialPct || 0 %>%</p>
+        <p style="margin-bottom:6px;">Athletic <%= athleticPct || 0 %>%</p>
+        <p>Special <%= specialPct || 0 %>%</p>
+      </div>
+    </div>
+    <div class="report-table-card">
+      <h3>Annual Reports & Budget Summary</h3>
+      <table id="reportsTable">
+        <thead>
+          <tr><th>School Year</th><th>Applicants</th><th>Approved</th><th>Rejected</th><th>Budget</th></tr>
+        </thead>
+        <tbody>
+          <% if (annualReports && annualReports.length) { %>
+            <% annualReports.forEach(function(r) { %>
+              <tr><td><%= r.school_year %></td><td><%= r.applicants %></td><td><%= r.approved %></td><td><%= r.rejected %></td><td><%= r.budget %></td></tr>
+            <% }); %>
+          <% } else { %>
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);">No report data available.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+<script>
+function exportTableToExcel() {
+  var t = document.getElementById('reportsTable').outerHTML;
+  var a = document.createElement('a');
+  a.href = 'data:application/vnd.ms-excel,' + encodeURIComponent(t);
+  a.download = 'scholarship-report.xls';
+  a.click();
+}
+</script>
+</body>
+</html>

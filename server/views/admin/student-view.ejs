@@ -1,21 +1,24 @@
 <%- include('../partials/head', { title: 'Student Details | Iskolarly' }) %>
-<nav class="navbar">
+<nav class="navbar navbar-admin">
   <div class="navbar-inner">
     <a href="/admin" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
     </a>
-    <ul class="nav-links">
-      <li><a href="/admin">Dashboard</a></li>
-      <li><a href="/admin/applications">Applications</a></li>
-      <li><a href="/auth/logout">Log Out</a></li>
-    </ul>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
   </div>
 </nav>
 <div class="dashboard-layout">
   <%- include('partials/sidebar', { currentPage: 'students', adminRole }) %>
-  <main class="main-content" style="padding:32px;">
-    <a href="/admin/students" class="btn btn-outline mb-16" style="display:inline-flex;gap:6px;">&larr; Back to Students</a>
+  <main class="main-content">
+    <a href="/admin/students" class="btn btn-outline mb-16">&larr; Back to Students</a>
 
     <% if (locals.message) { %>
     <div class="alert alert-success mb-24" style="display:flex;"><span class="alert-icon">&#10003;</span><div><%= message %></div></div>
@@ -105,11 +108,12 @@
               <th>Academic Year</th>
               <th>Semester</th>
               <th>Date Applied</th>
+              <th>Documents</th>
             </tr>
           </thead>
           <tbody>
             <% if (applications.length === 0) { %>
-              <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);">No applications yet.</td></tr>
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);">No applications yet.</td></tr>
             <% } else { %>
               <% var badgeMap = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected', under_review: 'badge-review', waitlisted: 'badge-gold' }; %>
               <% applications.forEach(function(a) { %>
@@ -119,6 +123,20 @@
                   <td><%= a.academic_year || '-' %></td>
                   <td><%= a.semester || '-' %></td>
                   <td><%= new Date(a.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <% if (a.documents && a.documents.length > 0) { %>
+                      <div style="display:flex;flex-direction:column;gap:4px;">
+                      <% a.documents.forEach(function(d) { %>
+                        <a href="/admin/documents/<%= d.id %>" target="_blank" class="btn btn-sm btn-outline" style="font-size:.7rem;padding:3px 8px;justify-content:flex-start;">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <%= d.file_name.length > 20 ? d.file_name.slice(0, 20) + '...' : d.file_name %>
+                        </a>
+                      <% }); %>
+                      </div>
+                    <% } else { %>
+                      <span class="text-muted" style="font-size:.8rem;">No documents</span>
+                    <% } %>
+                  </td>
                 </tr>
               <% }); %>
             <% } %>
@@ -128,11 +146,5 @@
     </div>
   </main>
 </div>
-<style>
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 8px 0; }
-.info-item { display: flex; flex-direction: column; gap: 2px; }
-.info-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.info-value { font-size: .925rem; color: var(--ink); }
-</style>
 </body>
 </html>

@@ -1,8 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { prisma, signToken } = require('../middleware/auth');
+const { logActivity } = require('../middleware/activity');
 const Joi = require('joi');
+const { validateName, validatePassword, sanitizeText, containsProfanity, normalizeEmail, validatePhone } = require('../lib/validation');
 
 const loginSchema = Joi.object({
   username: Joi.string().trim().required(),
@@ -49,6 +52,7 @@ router.get('/admin', (req, res) => {
 router.post('/admin', async (req, res) => {
   const { username, password, role: reqRole } = req.body;
   if (!username || !password) return res.render('auth/admin', { error: 'All fields required.' });
+  if (!reqRole) return res.render('auth/admin', { error: 'Please select your role.' });
 
   try {
     const admin = await prisma.admins.findUnique({ where: { email: username } });
@@ -57,8 +61,13 @@ router.post('/admin', async (req, res) => {
     const valid = await bcrypt.compare(password, admin.password_hash);
     if (!valid) return res.render('auth/admin', { error: 'Invalid credentials.' });
 
+    if (reqRole !== admin.role) {
+      return res.render('auth/admin', { error: 'The role selected does not match this account. Please choose the correct role.' });
+    }
+
     const token = signToken({ id: admin.id, email: admin.email, role: admin.role });
     res.cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    logActivity(admin.id, 'time_in', 'session', null, { display_name: admin.display_name });
     res.redirect('/admin');
   } catch (err) {
     console.error('Admin login error:', err);
@@ -67,7 +76,8 @@ router.post('/admin', async (req, res) => {
 });
 
 router.get('/register', (req, res) => {
-  res.render('auth/register', { error: null, message: null });
+  const idempotencyToken = require('crypto').randomUUID();
+  res.render('auth/register', { error: null, message: null, idempotencyToken });
 });
 
 router.post('/register', async (req, res) => {
@@ -77,17 +87,47 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existing = await prisma.students.findUnique({ where: { username: body.username } });
-    if (existing) return res.render('auth/register', { error: 'Username already taken.', message: null });
+    const username = sanitizeText(body.username);
+    const first_name = sanitizeText(body.first_name);
+    const last_name = sanitizeText(body.last_name);
+    const middle_name = body.middle_name ? sanitizeText(body.middle_name) : null;
+    const email = normalizeEmail(body.email);
+
+    const nameErr = validateName(first_name) || validateName(last_name);
+    if (nameErr) return res.render('auth/register', { error: nameErr, message: null });
+
+    if (containsProfanity(first_name) || containsProfanity(last_name) || (middle_name && containsProfanity(middle_name))) {
+      return res.render('auth/register', { error: 'Name contains inappropriate language.', message: null });
+    }
+
+    const pwErr = validatePassword(body.password, { first_name, last_name, username, email });
+    if (pwErr) return res.render('auth/register', { error: pwErr, message: null });
+
+    const existingUser = await prisma.students.findUnique({ where: { username } });
+    if (existingUser) return res.render('auth/register', { error: 'Username already taken.', message: null });
+
+    if (email) {
+      const existingEmail = await prisma.students.findFirst({ where: { email } });
+      if (existingEmail) return res.render('auth/register', { error: 'Email already registered. <a href="/auth/login">Sign in here</a>.', message: null });
+    }
+
+    if (body.contact_number) {
+      var phoneVal = body.contact_number.startsWith('+63') ? body.contact_number : `+63${body.contact_number.replace(/^0?/, '')}`;
+      const phoneErr = validatePhone(phoneVal);
+      if (phoneErr) return res.render('auth/register', { error: phoneErr, message: null });
+
+      const existingPhone = await prisma.students.findFirst({ where: { contact_number: phoneVal } });
+      if (existingPhone) return res.render('auth/register', { error: 'Phone number already registered. <a href="/auth/login">Sign in here</a>.', message: null });
+    }
 
     const password_hash = await bcrypt.hash(body.password, 10);
 
     await prisma.students.create({
       data: {
-        username: body.username,
-        last_name: body.last_name,
-        first_name: body.first_name,
-        middle_name: body.middle_name || null,
+        username,
+        last_name,
+        first_name,
+        middle_name,
         suffix: body.suffix || null,
         date_of_birth: body.date_of_birth ? new Date(body.date_of_birth) : new Date('2000-01-01'),
         sex: body.sex || 'Prefer not to say',
@@ -95,7 +135,7 @@ router.post('/register', async (req, res) => {
         contact_number: body.contact_number
           ? (body.contact_number.startsWith('+63') ? body.contact_number : `+63${body.contact_number.replace(/^0?/, '')}`)
           : '',
-        email: body.email || '',
+        email,
         addr_street: body.addr_street || '',
         addr_barangay: body.addr_barangay || '',
         addr_municipality: body.addr_municipality || '',
@@ -112,7 +152,16 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', async (req, res) => {
+  try {
+    const token = req.cookies?.token;
+    if (token) {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      if (payload.role && payload.role !== 'student') {
+        await logActivity(payload.id, 'time_out', 'session', null, {});
+      }
+    }
+  } catch (_) {}
   res.clearCookie('token');
   res.redirect('/auth/login');
 });

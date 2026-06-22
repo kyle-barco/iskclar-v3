@@ -1,87 +1,117 @@
 <%- include('../partials/head', { title: 'Applications | Iskolarly' }) %>
-<nav class="navbar">
+<nav class="navbar navbar-admin">
   <div class="navbar-inner">
     <a href="/admin" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
     </a>
-    <ul class="nav-links">
-      <li><a href="/admin">Dashboard</a></li>
-      <li><a href="/admin/students">Students</a></li>
-      <li><a href="/auth/logout">Log Out</a></li>
-    </ul>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
   </div>
 </nav>
-<% var badgeClass = { pending: 'badge-pending', approved: 'badge-approved', rejected: 'badge-rejected', under_review: 'badge-review', waitlisted: 'badge-gold' }; %>
 <div class="dashboard-layout">
   <%- include('partials/sidebar', { currentPage: 'applications', adminRole }) %>
   <main class="main-content">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <h1 style="font-size:1.8rem;margin:0;">Applications</h1>
-      <button class="btn btn-outline" disabled style="opacity:.5;cursor:not-allowed;">Export</button>
+    <div class="panel">
+      <div class="panel-top">
+        <div>
+          <div class="panel-title">Total Applications</div>
+          <div class="badges">
+            <a href="/admin/applications?status=approved<%= search ? '&search=' + search : '' %><%= locals.sortBy ? '&sort=' + locals.sortBy : '' %>" class="badge approved<%= statusFilter === 'approved' ? ' active' : '' %>">Approved</a>
+            <a href="/admin/applications?status=pending<%= search ? '&search=' + search : '' %><%= locals.sortBy ? '&sort=' + locals.sortBy : '' %>" class="badge pending<%= statusFilter === 'pending' ? ' active' : '' %>">Pending</a>
+            <a href="/admin/applications?status=rejected<%= search ? '&search=' + search : '' %><%= locals.sortBy ? '&sort=' + locals.sortBy : '' %>" class="badge rejected<%= statusFilter === 'rejected' ? ' active' : '' %>">Rejected</a>
+          </div>
+        </div>
+        <form method="GET" action="/admin/applications" class="search">
+          <% if (statusFilter) { %><input type="hidden" name="status" value="<%= statusFilter %>"><% } %>
+          <% if (locals.sortBy) { %><input type="hidden" name="sort" value="<%= locals.sortBy %>"><% } %>
+          <input type="text" name="search" placeholder="Type here..." value="<%= search || '' %>" />
+          <button>Search</button>
+        </form>
+      </div>
     </div>
-    <form method="GET" action="/admin/applications" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:24px;">
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="text-sm" style="font-size:.78rem;">Status</label>
-        <select name="status" class="form-control">
-          <option value="" <%= !statusFilter ? 'selected' : '' %>>All Statuses</option>
-          <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
-          <option value="under_review" <%= statusFilter === 'under_review' ? 'selected' : '' %>>Under Review</option>
-          <option value="approved" <%= statusFilter === 'approved' ? 'selected' : '' %>>Approved</option>
-          <option value="rejected" <%= statusFilter === 'rejected' ? 'selected' : '' %>>Rejected</option>
-          <option value="waitlisted" <%= statusFilter === 'waitlisted' ? 'selected' : '' %>>Waitlisted</option>
+
+    <div class="toolbar">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="sortBySelect" style="height:34px;border:1.5px solid #ccc;border-radius:10px;padding:0 14px;background:#fff;" onchange="applySort(this.value)">
+          <option value="" <%= !locals.sortBy ? 'selected' : '' %>>Sort by...</option>
+          <option value="date_desc" <%= locals.sortBy === 'date_desc' ? 'selected' : '' %>>Date (Newest)</option>
+          <option value="date_asc" <%= locals.sortBy === 'date_asc' ? 'selected' : '' %>>Date (Oldest)</option>
+          <option value="name_asc" <%= locals.sortBy === 'name_asc' ? 'selected' : '' %>>Name (A-Z)</option>
+          <option value="name_desc" <%= locals.sortBy === 'name_desc' ? 'selected' : '' %>>Name (Z-A)</option>
+          <option value="year_level" <%= locals.sortBy === 'year_level' ? 'selected' : '' %>>Year Level</option>
+          <option value="college" <%= locals.sortBy === 'college' ? 'selected' : '' %>>College</option>
         </select>
+        <% if (statusFilter || search || locals.sortBy) { %>
+          <a href="/admin/applications" style="height:34px;border:2px solid #9a9a9a;border-radius:10px;padding:0 16px;color:#888;font-weight:600;display:flex;align-items:center;text-decoration:none;">Clear</a>
+        <% } %>
       </div>
-      <div class="form-group" style="margin-bottom:0;">
-        <label class="text-sm" style="font-size:.78rem;">Search</label>
-        <input type="text" name="search" class="form-control" placeholder="Search by name..." value="<%= search || '' %>" />
-      </div>
-      <button type="submit" class="btn btn-primary">Filter</button>
-      <a href="/admin/applications" class="btn btn-outline">Clear</a>
-    </form>
+      <button class="download-btn" disabled style="opacity:.5;cursor:not-allowed;">
+        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+        Download
+      </button>
+    </div>
+
+<script>
+function applySort(val) {
+  var params = new URLSearchParams(window.location.search);
+  if (val) params.set('sort', val); else params.delete('sort');
+  window.location = '/admin/applications?' + params.toString();
+}
+</script>
+
     <% if (!applications || applications.length === 0) { %>
-      <div class="alert alert-warn">No applications found.</div>
+      <div class="table-card"><p class="text-muted" style="padding:32px;text-align:center;">No applications found.</p></div>
     <% } else { %>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Student Name</th>
-              <th>Student ID</th>
-              <th>Program</th>
-              <th>Academic Year</th>
-              <th>Status</th>
-              <th>Date Applied</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% applications.forEach(function(app) { %>
-            <tr>
-              <td><%= app.student.first_name %> <%= app.student.last_name %></td>
-              <td><%= app.student.student_id %></td>
-              <td><%= app.program.name %></td>
-              <td><%= app.academic_year %> - <%= app.semester %></td>
-              <td><span class="badge <%= badgeClass[app.status] %>"><%= app.status.replace('_', ' ') %></span></td>
-              <td><%= new Date(app.created_at).toLocaleDateString() %></td>
-              <td>
-                <form method="POST" action="/admin/applications/<%= app.id %>" style="display:flex;gap:4px;align-items:center;">
-                  <select name="status" class="form-control" style="padding:5px 8px;font-size:.75rem;width:auto;">
-                    <option value="" disabled>Change status</option>
-                    <option value="under_review" <%= app.status === 'under_review' ? 'selected' : '' %>>Under Review</option>
-                    <option value="approved" <%= app.status === 'approved' ? 'selected' : '' %>>Approved</option>
-                    <option value="rejected" <%= app.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
-                    <option value="waitlisted" <%= app.status === 'waitlisted' ? 'selected' : '' %>>Waitlisted</option>
-                  </select>
-                  <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                </form>
-              </td>
-            </tr>
-            <% }); %>
-          </tbody>
-        </table>
+    <div class="table-card">
+      <div class="header">
+        <div>NAME</div>
+        <div>STUDENT ID</div>
+        <div>COLLEGE</div>
+        <div>YEAR LEVEL</div>
+        <div>SCHOLARSHIP TYPE</div>
+        <div>FILE</div>
+        <div>STATUS</div>
+        <div>ACTION</div>
       </div>
+      <% applications.forEach(function(app) { %>
+        <% 
+          var badgePill = 'pending';
+          if (app.status === 'approved') badgePill = 'approved';
+          else if (app.status === 'under_review') badgePill = 'evaluating';
+          else if (app.status === 'waitlisted') badgePill = 'pending';
+          else if (app.status === 'rejected') badgePill = 'rejected';
+        %>
+        <div class="row" onclick="window.location='/admin/students/<%= app.student_id %>'" style="cursor:pointer;">
+          <div><%= app.student.first_name %> <%= app.student.last_name %></div>
+          <div><%= app.student.student_id || '—' %></div>
+          <div><%= app.student.college || '—' %></div>
+          <div><%= app.student.year_level || '—' %></div>
+          <div><%= app.program.name %></div>
+          <div><%= app.documents && app.documents.length > 0 ? 'PDF' : '—' %></div>
+          <div><span class="status-pill <%= badgePill %>"><%= app.status === 'under_review' ? 'Reviewing' : app.status.replace('_', ' ') %></span></div>
+          <div onclick="event.stopPropagation()">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <form method="POST" action="/admin/applications/<%= app.id %>" style="display:flex;gap:8px;align-items:center;">
+                <select name="status" style="padding:4px 6px;font-size:11px;border:1px solid #ccc;border-radius:6px;">
+                  <option value="" disabled>Change</option>
+                  <option value="under_review" <%= app.status === 'under_review' ? 'selected' : '' %>>Review</option>
+                  <option value="approved" <%= app.status === 'approved' ? 'selected' : '' %>>Approve</option>
+                  <option value="rejected" <%= app.status === 'rejected' ? 'selected' : '' %>>Reject</option>
+                  <option value="waitlisted" <%= app.status === 'waitlisted' ? 'selected' : '' %>>Waitlist</option>
+                </select>
+                <button type="submit" style="padding:4px 10px;font-size:11px;border:none;border-radius:6px;background:#520003;color:#fff;font-weight:600;cursor:pointer;">Update</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% }); %>
     </div>
     <% } %>
   </main>

@@ -34,8 +34,11 @@ model students {
   father_occ        String?
   mother_name       String?
   mother_occ        String?
+  profile_photo     String?
   password_hash     String
   created_at        DateTime @default(now()) @db.Timestamptz
+  is_deleted        Boolean  @default(false)
+  deleted_at        DateTime? @db.Timestamptz
 
   applications applications[]
 
@@ -50,7 +53,12 @@ model admins {
   is_active     Boolean @default(true)
   display_name  String
 
-  applications applications[]
+  applications           applications[]
+  notifications_created  notifications[] @relation("notification_creator")
+  notifications_approved notifications[] @relation("notification_approver")
+  activity_logs          activity_logs[]
+  deletion_requests_created  scholarship_programs[] @relation("deletion_requester")
+  deletion_requests_approved scholarship_programs[] @relation("deletion_approver")
 
   @@map("admins")
 }
@@ -67,7 +75,15 @@ model scholarship_programs {
   semester          String?
   type              String   @default("public")
   is_active         Boolean  @default(true)
+  is_deleted        Boolean  @default(false)
+  deleted_at        DateTime? @db.Timestamptz
+  deletion_requested_by String? @db.Uuid
+  deletion_requested_at DateTime? @db.Timestamptz
+  deletion_approved_by  String? @db.Uuid
+  deletion_approved_at  DateTime? @db.Timestamptz
 
+  deletion_requester admins? @relation("deletion_requester", fields: [deletion_requested_by], references: [id])
+  deletion_approver  admins? @relation("deletion_approver", fields: [deletion_approved_by], references: [id])
   applications applications[]
 
   @@map("scholarship_programs")
@@ -84,9 +100,11 @@ model applications {
   academic_year String?
   semester      String?
   created_at    DateTime  @default(now()) @db.Timestamptz
+  is_deleted    Boolean   @default(false)
+  deleted_at    DateTime? @db.Timestamptz
 
-  student   students             @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  program   scholarship_programs @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  student   students             @relation(fields: [student_id], references: [id])
+  program   scholarship_programs @relation(fields: [program_id], references: [id])
   reviewer  admins?              @relation(fields: [reviewed_by], references: [id])
   documents documents[]
 
@@ -106,4 +124,36 @@ model documents {
   application applications @relation(fields: [application_id], references: [id], onDelete: Cascade)
 
   @@map("documents")
+}
+
+model notifications {
+  id              String    @id @default(uuid()) @db.Uuid
+  title           String
+  message         String
+  status          String    @default("pending")
+  created_by      String    @db.Uuid
+  approved_by     String?   @db.Uuid
+  rejected_at     DateTime? @db.Timestamptz
+  rejection_reason String?
+  created_at      DateTime  @default(now()) @db.Timestamptz
+  updated_at      DateTime  @updatedAt @db.Timestamptz
+
+  creator  admins @relation("notification_creator", fields: [created_by], references: [id], onDelete: Cascade)
+  approver admins? @relation("notification_approver", fields: [approved_by], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model activity_logs {
+  id          String   @id @default(uuid()) @db.Uuid
+  admin_id    String   @db.Uuid
+  action      String
+  target_type String?
+  target_id   String?
+  details     String?
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  admin admins @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
 }

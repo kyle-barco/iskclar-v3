@@ -1,0 +1,125 @@
+<%- include('../partials/head', { title: 'School Year | Iskolarly' }) %>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<nav class="navbar navbar-admin">
+  <div class="navbar-inner">
+    <a href="/admin" class="navbar-brand">
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
+    </a>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
+  </div>
+</nav>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'school-year', adminRole }) %>
+  <main class="main-content">
+    <div class="sy-banner">
+      <h2>School Year Management</h2>
+      <p>Manage academic years, scholarship schedules, deadlines, and important events.</p>
+    </div>
+
+    <div class="sy-cards">
+      <div class="sy-card">
+        <h3>Current S.Y.</h3>
+        <h2><%= currentSy || '2026-2027' %></h2>
+        <small>Active</small>
+      </div>
+      <div class="sy-card">
+        <h3>Applications</h3>
+        <h2><%= totalApplications || 0 %></h2>
+      </div>
+      <div class="sy-card">
+        <h3>Upcoming Events</h3>
+        <h2><%= upcomingEvents || 0 %></h2>
+      </div>
+      <div class="sy-card">
+        <h3>Days Remaining</h3>
+        <h2><%= daysRemaining || '--' %></h2>
+      </div>
+    </div>
+
+    <div class="sy-main">
+      <div>
+        <div id="sy-calendar"></div>
+        <div class="sy-timeline-card">
+          <h3>Scholarship Timeline</h3>
+          <br>
+          Application Period → Verification → Evaluation → Interview → Release of Results
+        </div>
+        <div class="sy-timeline-card">
+          <h3>Legend</h3>
+          <div class="sy-legend">
+            <span style="background:#2e7d32">Application</span>
+            <span style="background:#f9a825">Verification</span>
+            <span style="background:#1565c0">Evaluation</span>
+            <span style="background:#8e24aa">Interview</span>
+            <span style="background:#c62828">Deadline</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="sy-side-card">
+          <h3>Current School Year</h3>
+          <p><b><%= currentSy || '2026–2027' %></b></p>
+          <br>
+          <p>Application Period<br>June 1 – July 15</p>
+          <br>
+          <p>Evaluation<br>July 16 – August 5</p>
+          <br>
+          <p>Results<br>August 15</p>
+        </div>
+        <div class="sy-side-card">
+          <h3>Upcoming Events</h3>
+          <ul>
+            <li>June 1 – Applications Open</li>
+            <li>July 15 – Deadline</li>
+            <li>July 18 – Screening</li>
+            <li>August 5 – Evaluation</li>
+            <li>August 15 – Scholar Release</li>
+          </ul>
+        </div>
+        <div class="sy-side-card">
+          <h3>Quick Actions</h3>
+          <button>Add School Year</button>
+          <button>Add Event</button>
+          <button>Generate Calendar</button>
+          <button>Archive School Year</button>
+          <button>Export Schedule</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var calEl = document.getElementById('sy-calendar');
+  if (typeof FullCalendar !== 'undefined' && calEl) {
+    var calendar = new FullCalendar.Calendar(calEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,listMonth'
+      },
+      height: 600,
+      events: [
+        { title: 'Applications Open', start: '2026-06-01', color: '#2e7d32' },
+        { title: 'Application Deadline', start: '2026-07-15', color: '#c62828' },
+        { title: 'Verification', start: '2026-07-18', color: '#f9a825' },
+        { title: 'Evaluation', start: '2026-08-05', color: '#1565c0' },
+        { title: 'Scholar Release', start: '2026-08-15', color: '#8e24aa' }
+      ]
+    });
+    calendar.render();
+  }
+});
+</script>
+</body>
+</html>

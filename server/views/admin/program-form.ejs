@@ -1,48 +1,50 @@
 <%- include('../partials/head', { title: (program ? 'Edit Program' : 'Add Program') + ' | Iskolarly' }) %>
-<nav class="navbar">
+<nav class="navbar navbar-admin">
   <div class="navbar-inner">
     <a href="/admin" class="navbar-brand">
-      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
-      <div class="brand-text">Iskolarly<span class="sub">Admin</span></div>
+      <div class="brand-icon"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div>
+      <div>
+        <div class="brand-title">Iskolarly</div>
+        <div class="brand-sub"><%= adminRole === 'superadmin' ? 'Superadmin Portal' : 'Admin Portal' %></div>
+      </div>
     </a>
-    <ul class="nav-links">
-      <li><a href="/admin">Dashboard</a></li>
-      <li><a href="/admin/applications">Applications</a></li>
-      <li><a href="/admin/students">Students</a></li>
-      <li><a href="/auth/logout">Log Out</a></li>
-    </ul>
+    <div class="user">
+      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span><strong><%= locals.adminName || 'Admin' %></strong>
+      <div class="avatar"><%= (locals.adminName || 'A').charAt(0).toUpperCase() %></div>
+      
+    </div>
   </div>
 </nav>
 <div class="dashboard-layout">
   <%- include('partials/sidebar', { currentPage: 'programs', adminRole: adminRole }) %>
-  <main class="main-content" style="padding:32px;">
-    <h1 style="font-size:1.8rem;margin-bottom:24px;"><%= program ? 'Edit Scholarship Program' : 'Add Scholarship Program' %></h1>
+  <main class="main-content">
+    <h1 class="page-title mb-24"><%= program ? 'Edit Scholarship Program' : 'Add Scholarship Program' %></h1>
 
     <% if (error) { %>
     <div class="alert-danger mb-24"><%= error %></div>
     <% } %>
 
     <div class="card card-lg">
-      <form method="POST" action="/admin/programs<%= program ? '/' + program.id : '' %>">
+      <form method="POST" action="/admin/programs<%= program ? '/' + program.id : '' %>" data-unsaved-warning>
         <div class="form-group">
           <label>Name <span class="text-danger">*</span></label>
-          <input type="text" name="name" class="form-control" value="<%= program ? program.name : '' %>" required />
+          <input type="text" name="name" class="form-control" value="<%= program ? program.name : '' %>" required maxlength="200" />
         </div>
 
         <div class="form-group">
           <label>Description</label>
-          <textarea name="description" class="form-control"><%= program ? program.description : '' %></textarea>
+          <textarea name="description" class="form-control" maxlength="2000"><%= program ? program.description : '' %></textarea>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
           <div class="form-group">
             <label>Slots</label>
-            <input type="number" name="slots" class="form-control" value="<%= program ? program.slots : '' %>" />
+            <input type="number" name="slots" class="form-control" value="<%= program ? program.slots : '' %>" min="1" max="999" />
           </div>
 
           <div class="form-group">
             <label>GPA Requirement</label>
-            <input type="number" name="gpa_requirement" class="form-control" step="0.01" value="<%= program ? program.gpa_requirement : '' %>" />
+            <input type="number" name="gpa_requirement" class="form-control" step="0.01" min="1.00" max="5.00" value="<%= program ? program.gpa_requirement : '' %>" />
           </div>
         </div>
 
