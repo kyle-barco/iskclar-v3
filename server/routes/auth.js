@@ -46,23 +46,23 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/admin', (req, res) => {
-  res.render('auth/admin', { error: null });
+  res.render('auth/admin', { error: null, username: null, role: null });
 });
 
 router.post('/admin', async (req, res) => {
   const { username, password, role: reqRole } = req.body;
-  if (!username || !password) return res.render('auth/admin', { error: 'All fields required.' });
-  if (!reqRole) return res.render('auth/admin', { error: 'Please select your role.' });
+  if (!username || !password) return res.render('auth/admin', { error: 'All fields required.', username, role: reqRole });
+  if (!reqRole) return res.render('auth/admin', { error: 'Please select your role.', username, role: reqRole });
 
   try {
     const admin = await prisma.admins.findUnique({ where: { email: username } });
-    if (!admin || !admin.is_active) return res.render('auth/admin', { error: 'Invalid credentials.' });
+    if (!admin || !admin.is_active) return res.render('auth/admin', { error: 'Invalid credentials.', username, role: reqRole });
 
     const valid = await bcrypt.compare(password, admin.password_hash);
-    if (!valid) return res.render('auth/admin', { error: 'Invalid credentials.' });
+    if (!valid) return res.render('auth/admin', { error: 'Invalid credentials.', username, role: reqRole });
 
     if (reqRole !== admin.role) {
-      return res.render('auth/admin', { error: 'The role selected does not match this account. Please choose the correct role.' });
+      return res.render('auth/admin', { error: 'The role selected does not match this account. Please choose the correct role.', username, role: reqRole });
     }
 
     const token = signToken({ id: admin.id, email: admin.email, role: admin.role });
