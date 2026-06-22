@@ -8,8 +8,8 @@
       </div>
     </a>
     <div class="user">
-      <span style="opacity:.7"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span>
-      <strong><%= locals.adminName || 'Admin' %></strong>
+      <span style="opacity:.7;color:#fff"><%= adminRole === 'superadmin' ? 'Super Administrator' : 'Administrator' %></span>
+      <strong style="color:#fff"><%= locals.adminName || 'Admin' %></strong>
       <div class="avatar admin-avatar" onclick="toggleAdminDropdown(event)" style="position:relative;cursor:pointer;">
         <%= (locals.adminName || 'A').charAt(0).toUpperCase() %>
         <div class="admin-dropdown" id="adminDropdown">

@@ -49,14 +49,14 @@
       <form method="POST" action="/auth/login">
         <div class="form-group">
           <label>Username <span class="required">*</span></label>
-          <input type="text" class="form-control" name="username" placeholder="Enter your username or email" required />
+          <input type="text" class="form-control" name="username" placeholder="Enter your username" required />
         </div>
         <div class="form-group">
           <label>Password <span class="required">*</span></label>
           <div style="position:relative;">
             <input type="password" class="form-control" name="password" id="loginPassword" placeholder="Enter your password" required style="padding-right:44px;" />
-            <button type="button" onclick="togglePassword()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;font-size:1.1rem;" aria-label="Toggle password visibility">
-              <span id="loginPassIcon">👁</span>
+            <button type="button" onclick="togglePassword()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:4px;" aria-label="Toggle password visibility">
+              <span id="loginPassIcon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
             </button>
           </div>
         </div>
@@ -90,16 +90,35 @@
   </div>
 </div>
 <script>
+  (function() {
+    var savedUser = localStorage.getItem('rememberedUsername');
+    var savedPass = localStorage.getItem('rememberedPassword');
+    if (savedUser) {
+      document.querySelector('input[name="username"]').value = savedUser;
+      if (savedPass) document.querySelector('input[name="password"]').value = savedPass;
+      document.getElementById('rememberMe').checked = true;
+    }
+
+    document.querySelector('form').addEventListener('submit', function() {
+      if (document.getElementById('rememberMe').checked) {
+        var user = document.querySelector('input[name="username"]').value.trim();
+        var pass = document.querySelector('input[name="password"]').value;
+        localStorage.setItem('rememberedUsername', user);
+        localStorage.setItem('rememberedPassword', pass);
+      } else {
+        localStorage.removeItem('rememberedUsername');
+        localStorage.removeItem('rememberedPassword');
+      }
+    });
+  })();
+
   function togglePassword() {
     const el = document.getElementById('loginPassword');
     const icon = document.getElementById('loginPassIcon');
-    if (el.type === 'password') {
-      el.type = 'text';
-      icon.textContent = '🙈';
-    } else {
-      el.type = 'password';
-      icon.textContent = '👁';
-    }
+    el.type = el.type === 'password' ? 'text' : 'password';
+    icon.innerHTML = el.type === 'password'
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
   }
 </script>
 </body>
