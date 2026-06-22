@@ -24,21 +24,28 @@
     <form method="POST" action="/auth/admin">
       <div class="form-group">
         <label>Administrator Email <span class="required">*</span></label>
-        <input type="text" class="form-control" name="username" placeholder="Enter your admin email" required />
+        <input type="text" class="form-control" name="username" placeholder="Enter your admin email" value="<%= locals.username || '' %>" required />
       </div>
       <div class="form-group">
         <label>Password <span class="required">*</span></label>
-        <input type="password" class="form-control" name="password" placeholder="Enter your password" required />
+        <div style="position:relative;">
+          <input type="password" class="form-control" name="password" id="adminPassword" placeholder="Enter your password" required style="padding-right:44px;" />
+          <button type="button" onclick="document.getElementById('adminPassword').type = document.getElementById('adminPassword').type === 'password' ? 'text' : 'password'" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;font-size:1.1rem;" aria-label="Toggle password visibility">👁</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Role <span class="required">*</span></label>
         <select class="form-control" name="role">
           <option value="">Select your role</option>
-          <option value="admin">Administrator</option>
-          <option value="superadmin">Super Administrator</option>
+          <option value="admin" <%= locals.role === 'admin' ? 'selected' : '' %>>Administrator</option>
+          <option value="superadmin" <%= locals.role === 'superadmin' ? 'selected' : '' %>>Super Administrator</option>
         </select>
       </div>
       <button type="submit" class="btn btn-primary btn-lg w-full mt-8">Sign In to Admin Portal</button>
+
+      <div style="text-align:center;margin-top:12px;">
+        <a href="/auth/admin/forgot-password" style="font-size:.82rem;color:var(--navy);font-weight:600;">Forgot Password?</a>
+      </div>
     </form>
 
     <hr class="divider" />

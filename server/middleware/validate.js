@@ -45,7 +45,7 @@ const registerSchema = Joi.object({
   nationality:     Joi.string().min(2).max(60).default('Filipino'),
 
   // Contact
-  contact_number:  Joi.string().pattern(/^+63\d{9}$/).required()
+  contact_number:  Joi.string().pattern(/^\+63\d{9}$/).required()
                      .messages({ 'string.pattern.base': 'Must be a valid PH mobile number (+639XXXXXXXXX)' }),
   
   // Address
@@ -78,7 +78,7 @@ const loginSchema = Joi.object({
 });
 
 const updateProfileSchema = Joi.object({
-  contact_number:    Joi.string().pattern(/^+63\d{9}$/).optional(),
+  contact_number:    Joi.string().pattern(/^\+63\d{9}$/).optional(),
   addr_street:       Joi.string().min(2).max(100).optional(),
   addr_barangay:     Joi.string().min(2).max(80).optional(),
   addr_municipality: Joi.string().min(2).max(80).optional(),

@@ -5,6 +5,11 @@ const { prisma, requireAuth } = require('../middleware/auth');
 router.get('/application', requireAuth, async (req, res) => {
   try {
     const student = await prisma.students.findUnique({ where: { id: req.user.id } });
+    if (!student) {
+      res.clearCookie('token');
+      return res.redirect('/auth/login');
+    }
+
     const programs = await prisma.scholarship_programs.findMany({
       where: {
         is_active: true,
@@ -42,6 +47,17 @@ router.post('/application', requireAuth, async (req, res) => {
       const student = await prisma.students.findUnique({ where: { id: req.user.id } });
       const programs = await prisma.scholarship_programs.findMany({ where: { is_active: true } });
       return res.render('portal/application', { student, programs, error: 'You already have an active application for this program.', message: null });
+    }
+
+    if (semester) {
+      const sameSemester = await prisma.applications.findFirst({
+        where: { student_id: req.user.id, semester, status: { notIn: ['rejected', 'withdrawn'] } },
+      });
+      if (sameSemester) {
+        const student = await prisma.students.findUnique({ where: { id: req.user.id } });
+        const programs = await prisma.scholarship_programs.findMany({ where: { is_active: true } });
+        return res.render('portal/application', { student, programs, error: 'You already applied for a scholarship this semester. Only one application per semester is allowed.', message: null });
+      }
     }
 
     await prisma.applications.create({

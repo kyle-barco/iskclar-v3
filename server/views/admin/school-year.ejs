@@ -1,0 +1,258 @@
+<%- include('../partials/head', { title: 'School Year | Iskolarly' }) %>
+<script src="/fullcalendar/index.global.min.js"></script>
+<%- include('partials/navbar', { adminRole }) %>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'school-year', adminRole }) %>
+  <main class="main-content">
+    <div class="sy-banner">
+      <h2>School Year Management</h2>
+      <p>Manage academic years, scholarship schedules, deadlines, and important events.</p>
+    </div>
+
+    <div class="sy-cards">
+      <div class="sy-card">
+        <h3>Current S.Y.</h3>
+        <h2><%= currentSy || '2026-2027' %></h2>
+        <small>Active</small>
+      </div>
+      <div class="sy-card">
+        <h3>Applications</h3>
+        <h2><%= totalApplications || 0 %></h2>
+      </div>
+      <div class="sy-card">
+        <h3>Upcoming Events</h3>
+        <h2><%= upcomingEvents || 0 %></h2>
+      </div>
+      <div class="sy-card">
+        <h3>Days Remaining</h3>
+        <h2><%= daysRemaining || '--' %></h2>
+      </div>
+    </div>
+
+    <div class="sy-main">
+      <div>
+        <div id="sy-calendar"></div>
+        <div class="sy-timeline-card">
+          <h3>Scholarship Timeline</h3>
+          <br>
+          Application Period → Verification → Evaluation → Interview → Release of Results
+        </div>
+        <div class="sy-timeline-card">
+          <h3>Legend</h3>
+          <div class="sy-legend">
+            <span style="background:#2e7d32">Application</span>
+            <span style="background:#f9a825">Verification</span>
+            <span style="background:#1565c0">Evaluation</span>
+            <span style="background:#8e24aa">Interview</span>
+            <span style="background:#c62828">Deadline</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="sy-side-card">
+          <h3>Current School Year</h3>
+          <p><b><%= currentSy || '2026–2027' %></b></p>
+          <br>
+          <p>Application Period<br>June 1 – July 15</p>
+          <br>
+          <p>Evaluation<br>July 16 – August 5</p>
+          <br>
+          <p>Results<br>August 15</p>
+        </div>
+        <div class="sy-side-card">
+          <h3>Upcoming Events</h3>
+          <ul id="sy-upcoming-list">
+            <li>Loading...</li>
+          </ul>
+        </div>
+        <div class="sy-side-card">
+          <h3>Quick Actions</h3>
+          <button onclick="document.getElementById('sy-event-modal').style.display='block';document.getElementById('sy-event-form').reset();document.getElementById('sy-event-id').value='';">Add Event</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="sy-event-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="margin:0;" id="sy-event-title">Add Event</h3>
+      <button onclick="document.getElementById('sy-event-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">✕</button>
+    </div>
+    <form id="sy-event-form" onsubmit="return saveEvent(event)">
+      <input type="hidden" id="sy-event-id">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="sy-event-title-input" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="sy-event-desc" class="form-control" rows="2"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Start Date *</label>
+          <input type="date" id="sy-event-start" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" id="sy-event-end" class="form-control">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Color</label>
+          <select id="sy-event-color" class="form-control">
+            <option value="#2e7d32">Green (Application)</option>
+            <option value="#f9a825">Yellow (Verification)</option>
+            <option value="#1565c0">Blue (Evaluation)</option>
+            <option value="#8e24aa">Purple (Interview)</option>
+            <option value="#c62828">Red (Deadline)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="sy-event-type" class="form-control">
+            <option value="application">Application</option>
+            <option value="verification">Verification</option>
+            <option value="evaluation">Evaluation</option>
+            <option value="interview">Interview</option>
+            <option value="deadline">Deadline</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button type="button" onclick="document.getElementById('sy-event-modal').style.display='none'" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="sy-event-save-btn">Save Event</button>
+      </div>
+    </form>
+    <div id="sy-event-delete-area" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+      <button onclick="deleteEvent()" style="background:#c62828;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;">Delete Event</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var syEvents = <%- events || '[]' %>;
+
+document.addEventListener('DOMContentLoaded', function() {
+  var calEl = document.getElementById('sy-calendar');
+  if (typeof FullCalendar === 'undefined') {
+    calEl.innerHTML = '<div style="padding:40px;text-align:center;color:#888;">Calendar library failed to load. Try refreshing the page.</div>';
+    return;
+  }
+  if (!calEl) return;
+  try {
+    var calendar = new FullCalendar.Calendar(calEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'myPrev,myNext today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,listMonth'
+      },
+      customButtons: {
+        myPrev: {
+          text: '❮',
+          click: function() { calendar.prev(); }
+        },
+        myNext: {
+          text: '❯',
+          click: function() { calendar.next(); }
+        }
+      },
+      height: 'auto',
+      events: Array.isArray(syEvents) ? syEvents.map(function(e) {
+        return {
+          id: e.id,
+          title: e.title,
+          start: e.event_date,
+          end: e.end_date || e.event_date,
+          color: e.color,
+          extendedProps: { description: e.description, type: e.type }
+        };
+      }) : [],
+      eventClick: function(info) {
+        var e = info.event;
+        document.getElementById('sy-event-id').value = e.id;
+        document.getElementById('sy-event-title-input').value = e.title;
+        document.getElementById('sy-event-desc').value = e.extendedProps.description || '';
+        document.getElementById('sy-event-start').value = e.startStr.slice(0,10);
+        document.getElementById('sy-event-end').value = e.end ? e.endStr.slice(0,10) : '';
+        document.getElementById('sy-event-color').value = e.backgroundColor || '#2e7d32';
+        document.getElementById('sy-event-type').value = e.extendedProps.type || 'application';
+        document.getElementById('sy-event-title').textContent = 'Edit Event';
+        document.getElementById('sy-event-save-btn').textContent = 'Update Event';
+        document.getElementById('sy-event-delete-area').style.display = 'block';
+        document.getElementById('sy-event-modal').style.display = 'flex';
+      }
+    });
+    calendar.render();
+    window.syCalendar = calendar;
+  } catch (err) {
+    calEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;">Calendar error: ' + err.message + '</div>';
+  }
+  renderUpcoming();
+});
+
+function renderUpcoming() {
+  var list = document.getElementById('sy-upcoming-list');
+  var now = new Date();
+  now.setHours(0,0,0,0);
+  var upcoming = syEvents.filter(function(e) { return new Date(e.event_date) >= now; }).sort(function(a,b) { return new Date(a.event_date) - new Date(b.event_date); });
+  if (upcoming.length === 0) {
+    list.innerHTML = '<li style="color:#888;">No upcoming events.</li>';
+    return;
+  }
+  list.innerHTML = upcoming.map(function(e) {
+    var d = new Date(e.event_date);
+    var dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return '<li><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + e.color + ';margin-right:6px;"></span>' + dateStr + ' – ' + e.title + '</li>';
+  }).join('');
+}
+
+function saveEvent(e) {
+  e.preventDefault();
+  var id = document.getElementById('sy-event-id').value;
+  var title = document.getElementById('sy-event-title-input').value.trim();
+  var description = document.getElementById('sy-event-desc').value.trim();
+  var event_date = document.getElementById('sy-event-start').value;
+  var end_date = document.getElementById('sy-event-end').value;
+  var color = document.getElementById('sy-event-color').value;
+  var type = document.getElementById('sy-event-type').value;
+  var btn = document.getElementById('sy-event-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  var url = id ? '/admin/school-year/events/' + id : '/admin/school-year/events';
+  var method = id ? 'PUT' : 'POST';
+
+  fetch(url, {
+    method: method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description, event_date, end_date, color, type }),
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.error) { alert(data.error); return; }
+    document.getElementById('sy-event-modal').style.display = 'none';
+    location.reload();
+  }).catch(function(err) {
+    alert('Failed to save event.');
+    btn.disabled = false;
+    btn.textContent = id ? 'Update Event' : 'Save Event';
+  });
+}
+
+function deleteEvent() {
+  var id = document.getElementById('sy-event-id').value;
+  if (!id || !confirm('Delete this event?')) return;
+  fetch('/admin/school-year/events/' + id, { method: 'DELETE' }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.error) { alert(data.error); return; }
+    document.getElementById('sy-event-modal').style.display = 'none';
+    location.reload();
+  }).catch(function(err) {
+    alert('Failed to delete event.');
+  });
+}
+</script>
+</body>
+</html>

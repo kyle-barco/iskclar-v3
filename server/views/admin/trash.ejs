@@ -1,0 +1,120 @@
+<%- include('../partials/head', { title: 'Trash | Iskolarly' }) %>
+<%- include('partials/navbar', { adminRole }) %>
+<div class="dashboard-layout">
+  <%- include('partials/sidebar', { currentPage: 'trash', adminRole }) %>
+  <main class="main-content">
+    <div style="background:var(--navy);color:#fff;border-radius:22px;padding:20px 32px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:18px;font-weight:700">TRASH</div>
+      <div style="display:flex;gap:40px;font-weight:700">
+        <div style="display:flex;align-items:center;gap:8px">⚠ RECENT</div>
+        <div style="display:flex;align-items:center;gap:8px">↺ RESTORE</div>
+      </div>
+    </div>
+
+    <div style="color:#8a8a8a;font-size:15px;font-weight:700;margin:12px 0;">REJECTED APPLICATIONS (<%= rejectedApps.length %>)</div>
+    <% if (rejectedApps.length > 0) { %>
+    <div style="background:#f8f8f8;border-radius:18px;box-shadow:0 2px 3px rgba(0,0,0,.15);overflow:hidden;">
+      <% rejectedApps.forEach(function(a) { %>
+      <div style="display:flex;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #bdbdbd;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#333"><%= a.student.first_name %> <%= a.student.last_name %></div>
+          <div style="margin-top:8px;color:#8a8a8a;font-size:16px"><%= a.program.name %></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;color:#444;margin-bottom:28px;"><%= a.reviewed_at ? new Date(a.reviewed_at).toLocaleDateString() : '-' %></div>
+          <div style="display:inline-flex;align-items:center;gap:8px;border:2px solid #9a9a9a;border-radius:10px;padding:6px 16px;color:#888;font-weight:700;background:#fff;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+            Modify
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+      <p style="padding:18px 0;color:#888;">No rejected applications.</p>
+    <% } %>
+
+    <div style="color:#8a8a8a;font-size:15px;font-weight:700;margin:16px 0 12px;">INACTIVE ADMIN ACCOUNTS (<%= inactiveAdmins.length %>)</div>
+    <% if (inactiveAdmins.length > 0) { %>
+    <div style="background:#f8f8f8;border-radius:18px;box-shadow:0 2px 3px rgba(0,0,0,.15);overflow:hidden;">
+      <% inactiveAdmins.forEach(function(a) { %>
+      <div style="display:flex;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #bdbdbd;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#333"><%= a.display_name %></div>
+          <div style="margin-top:8px;color:#8a8a8a;font-size:16px"><%= a.email %></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;color:#444;margin-bottom:28px;"><%= a.role %></div>
+          <div style="display:inline-flex;align-items:center;gap:8px;border:2px solid #9a9a9a;border-radius:10px;padding:6px 16px;color:#888;font-weight:700;background:#fff;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+            Modify
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+      <p style="padding:18px 0;color:#888;">No inactive admin accounts.</p>
+    <% } %>
+
+    <div style="color:#8a8a8a;font-size:15px;font-weight:700;margin:16px 0 12px;">DELETED PROGRAMS (<%= deletedPrograms.length %>)</div>
+    <% if (deletedPrograms.length > 0) { %>
+    <div style="background:#f8f8f8;border-radius:18px;box-shadow:0 2px 3px rgba(0,0,0,.15);overflow:hidden;">
+      <% deletedPrograms.forEach(function(p) { %>
+      <div style="display:flex;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #bdbdbd;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#333"><%= p.name %></div>
+          <div style="margin-top:8px;color:#8a8a8a;font-size:16px">
+            <% if (p.deletion_approver) { %>Approved by <%= p.deletion_approver.display_name %> · <% } %>
+            <%= p.deleted_at ? new Date(p.deleted_at).toLocaleDateString() : '' %>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="display:flex;gap:8px;">
+            <form method="POST" action="/admin/programs/<%= p.id %>/restore" style="margin:0;">
+              <button type="submit" style="display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:8px 16px;background:#4C8F45;color:#fff;font-weight:700;cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Restore
+              </button>
+            </form>
+            <form method="POST" action="/admin/programs/<%= p.id %>/permanent-delete" style="margin:0;">
+              <button type="submit" style="display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:8px 16px;background:#c62828;color:#fff;font-weight:700;cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Permanently Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+      <p style="padding:18px 0;color:#888;">No deleted programs.</p>
+    <% } %>
+
+    <div style="color:#8a8a8a;font-size:15px;font-weight:700;margin:16px 0 12px;">WITHDRAWN APPLICATIONS (<%= withdrawnApps.length %>)</div>
+    <% if (withdrawnApps.length > 0) { %>
+    <div style="background:#f8f8f8;border-radius:18px;box-shadow:0 2px 3px rgba(0,0,0,.15);overflow:hidden;">
+      <% withdrawnApps.forEach(function(a) { %>
+      <div style="display:flex;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #bdbdbd;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#333"><%= a.student.first_name %> <%= a.student.last_name %></div>
+          <div style="margin-top:8px;color:#8a8a8a;font-size:16px"><%= a.program.name %></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;color:#444;margin-bottom:28px;"><%= new Date(a.created_at).toLocaleDateString() %></div>
+          <div style="display:inline-flex;align-items:center;gap:8px;border:2px solid #9a9a9a;border-radius:10px;padding:6px 16px;color:#888;font-weight:700;background:#fff;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+            Modify
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+      <p style="padding:18px 0;color:#888;">No withdrawn applications.</p>
+    <% } %>
+  </main>
+</div>
+</body>
+</html>
