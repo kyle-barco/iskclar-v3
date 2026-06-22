@@ -9,6 +9,11 @@
     "seed": "node seed.js"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/list": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
     "@supabase/supabase-js": "^2.45.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.6",
@@ -17,6 +22,7 @@
     "ejs": "^6.0.1",
     "express": "^4.19.0",
     "express-rate-limit": "^7.3.0",
+    "fullcalendar": "^6.1.15",
     "helmet": "^7.1.0",
     "image-size": "^2.0.2",
     "joi": "^17.13.0",

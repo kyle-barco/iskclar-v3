@@ -648,15 +648,32 @@ router.post('/notifications/:id/delete', requireAdmin, async (req, res) => {
 });
 
 /* ── School Year ────────────────────────────────────────── */
+const DEFAULT_EVENTS = [
+  { title: 'Applications Open', event_date: new Date('2026-06-01'), color: '#2e7d32', type: 'application' },
+  { title: 'Application Deadline', event_date: new Date('2026-07-15'), color: '#c62828', type: 'deadline' },
+  { title: 'Screening', event_date: new Date('2026-07-18'), color: '#f9a825', type: 'verification' },
+  { title: 'Evaluation', event_date: new Date('2026-08-05'), color: '#1565c0', type: 'evaluation' },
+  { title: 'Scholar Release', event_date: new Date('2026-08-15'), color: '#8e24aa', type: 'interview' },
+];
+
 router.get('/school-year', requireAdmin, async (req, res) => {
   try {
     const appCount = await prisma.applications.count();
+    var events = await prisma.school_events.findMany({ orderBy: { event_date: 'asc' } });
+    if (events.length === 0) {
+      for (var ev of DEFAULT_EVENTS) {
+        await prisma.school_events.create({ data: ev });
+      }
+      events = await prisma.school_events.findMany({ orderBy: { event_date: 'asc' } });
+    }
+    const upcoming = events.filter(function(e) { return new Date(e.event_date) >= new Date(); });
     res.render('admin/school-year', {
       adminRole: req.adminRole,
       currentSy: '2026–2027',
       totalApplications: appCount,
-      upcomingEvents: 5,
+      upcomingEvents: upcoming.length,
       daysRemaining: 28,
+      events: JSON.stringify(events),
     });
   } catch (err) {
     console.error('School year error:', err);
@@ -666,7 +683,74 @@ router.get('/school-year', requireAdmin, async (req, res) => {
       totalApplications: 0,
       upcomingEvents: 0,
       daysRemaining: '--',
+      events: '[]',
     });
+  }
+});
+
+router.get('/school-year/events', requireAdmin, async (req, res) => {
+  try {
+    const events = await prisma.school_events.findMany({ orderBy: { event_date: 'asc' } });
+    res.json(events);
+  } catch (err) {
+    console.error('Fetch events error:', err);
+    res.status(500).json({ error: 'Failed to fetch events.' });
+  }
+});
+
+router.post('/school-year/events', requireAdmin, async (req, res) => {
+  var { title, description, event_date, end_date, color, type } = req.body;
+  if (!title || !event_date) return res.status(400).json({ error: 'Title and date are required.' });
+
+  try {
+    var event = await prisma.school_events.create({
+      data: {
+        title: title.trim(),
+        description: (description || '').trim(),
+        event_date: new Date(event_date),
+        end_date: end_date ? new Date(end_date) : null,
+        color: color || '#2e7d32',
+        type: type || 'application',
+        created_by: req.user.id,
+      },
+    });
+    res.json(event);
+  } catch (err) {
+    console.error('Create event error:', err);
+    res.status(500).json({ error: 'Failed to create event.' });
+  }
+});
+
+router.put('/school-year/events/:id', requireAdmin, async (req, res) => {
+  var { title, description, event_date, end_date, color, type } = req.body;
+  if (!title || !event_date) return res.status(400).json({ error: 'Title and date are required.' });
+
+  try {
+    var event = await prisma.school_events.update({
+      where: { id: req.params.id },
+      data: {
+        title: title.trim(),
+        description: (description || '').trim(),
+        event_date: new Date(event_date),
+        end_date: end_date ? new Date(end_date) : null,
+        color: color || '#2e7d32',
+        type: type || 'application',
+      },
+    });
+    res.json(event);
+  } catch (err) {
+    console.error('Update event error:', err);
+    res.status(500).json({ error: 'Failed to update event.' });
+  }
+});
+
+router.delete('/school-year/events/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.school_events.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete event error:', err);
+    res.status(500).json({ error: 'Failed to delete event.' });
   }
 });
 
